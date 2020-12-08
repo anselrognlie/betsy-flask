@@ -1,0 +1,52 @@
+{% from '_macros.html' import render_field, button_input_to %}
+
+{% macro shopping_button() %}
+  {{ button_to('Continue Shopping', method='get', link=url_for('page.home')) }}
+{% endmacro %}
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Checkout Details</h1>
+{% if not order_items %}
+<h2>Cart is empty</h2>
+{{ shopping_button() }}
+{% else %}
+<form method="POST" action="{{ form_action }}">
+  {{ form.csrf_token }}
+  {{ render_field(form.email, size=20) }}
+  {{ render_field(form.mailing_address, size=20) }}
+  {{ render_field(form.cc_name, size=20) }}
+  {{ render_field(form.cc_number, size=20) }}
+  {{ render_field(form.cc_exp, size=20) }}
+  {{ render_field(form.cc_cvv, size=20) }}
+  {{ render_field(form.cc_zipcode, size=20) }}
+  <input type="submit" value="Checkout">
+  {{ button_input_to('Continue Shopping', link=url_for('page.home')) }}
+</form>
+<table>
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Price</th>
+      <th>Quantity</th>
+      <th>Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for item in order_items %}
+<tr>
+  <td><a href="{{ url_for('product.show', id=item.product_id) }}">{{ item.product_name() }}</a></td>
+  <td>{{ price_display(item.product_price()) }}</td>
+  <td>{{ item.quantity }}</td>
+  <td>{{ price_display(item.subtotal()) }}</td>
+</tr>
+{% endfor %}
+    <tr>
+      <td colspan=3>Total</td>
+      <td>{{ price_display(order.total()) }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% macro post_link(text, link='', class='', prompt=None) -%}
+  <form class='link' action="{{ link }}" method="post" {% if prompt %}onsubmit='return confirm("{{ prompt }}")'{% endif %}>
+    <input type="submit" />
+    <a href="{{ link }}" class="{{ class }}" onclick='parentElement.firstElementChild.click(); return false'>{{ text }}</a>
+  </form>
+{%- endmacro %}
+
+{% macro button_to(text, method='post', link='', class='', prompt=None) -%}
+  <form class="{{ class }}" action="{{ link }}" method="{{ method }}" {% if prompt %}onsubmit='return confirm("{{ prompt }}")'{% endif %}>
+    <input type="submit" value="{{ text }}" />
+  </form>
+{%- endmacro %}
+
+{% macro button_input_to(text, link='', class='') -%}
+  <input type="button" class="{{ class }}" value="{{ text }}"
+    onclick="window.location.assign('{{ link }}');" />
+{%- endmacro %}
+
+
+{% macro merchant_link(merchant) -%}
+    {%- if merchant -%}
+      <a href="{{ url_for('merchant.show', id=merchant.id) }}">{{ merchant.name }}</a>
+    {%- else -%}
+      No merchant
+    {%- endif -%}
+{%- endmacro %}
+
+{% macro named_list(list) %}
+{% if list %}
+<ul>
+{% for l in list %}
+  <li>{{ caller(l) }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endmacro %}
+
+{% macro render_field(field) %}
+  <dt>{{ field.label }}</dt>
+  <dd>{{ field(**kwargs)|safe }}
+  {% if field.errors %}
+    <ul class=errors>
+    {% for error in field.errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </dd>
+{% endmacro %}
+
+{% macro render_labeled_data(label, data) %}
+  <dt>{{ label }}</dt>
+  <dd>{{ data }}</dd>
+{% endmacro %}
+
+{% macro selected(lhs, rhs) -%}
+  {%- if lhs == rhs -%}
+    selected
+  {%- endif -%}
+{%- endmacro %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Merchants</h1>
+<table>
+{% for merchant in merchants %}
+<tr>
+  <td>
+    <a href="{{ url_for('merchant.show', id=merchant.id) }}">{{ merchant.name_safe }}</a>
+    {% if merchant.can_impersonate() %}
+    {{ post_link("(<i>i</i>)"|safe, url_for('merchant.impersonate', id=merchant.id)) }}
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

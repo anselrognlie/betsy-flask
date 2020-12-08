@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if can_edit %}
+<a href="{{ url_for('merchant.update') }}">Edit</a>
+{% endif %}
+
+<div>name: {{ merchant.name }}
+  {%- if can_impersonate -%}
+  {{ post_link("(<i>i</i>)"|safe, url_for('merchant.impersonate', id=merchant.id)) }}
+  {%- endif -%}
+</div>
+<div>email: {{ merchant.email }}</div>
+<div>products:</div>
+{% call(list_item) named_list(products) %}
+    <a href="{{ url_for('product.show', id=list_item.id) }}">{{ list_item.name }}</a>
+{% endcall %}
+
+<a href="{{ url_for('merchant.index') }}">View all</a>
+{% endblock %}

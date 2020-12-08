@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% from '_macros.html' import render_field %}
+
+{% block content %}
+<h1>Merchant data</h1>
+<form method="POST" action="{{ form_action }}">
+  {{ form.csrf_token }}
+  <dt>email</dt>
+  <dd>{{ merchant.email }}</dd>
+  {{ render_field(form.name, size=20) }}
+  <input type="submit" value="Go">
+</form>
+{% endblock %}

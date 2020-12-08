@@ -1,0 +1,8 @@
+{% macro review_item(review) %}
+<section>
+  <div>Rating: {{review.rating}}</div>
+  {% if review.comment %}
+  <div>Comment: {{review.comment}}</div>
+  {% endif %}
+</section>
+{% endmacro %}

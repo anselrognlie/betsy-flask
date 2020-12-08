@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Order Fulfillment</h1>
+<section>
+  {% if order.ordered_date %}
+  <div>ordered: {{ date_display(order.ordered_date, 'pending') }}</div>
+  {% endif %}
+  <div>status: {{ order.status }}</div>
+  <div>name: {{ order.cc_name }}</div>
+  <div>mailing address: {{ order.mailing_address }}</div>
+  <div>email: {{ order.email }}</div>
+  <div>credit card: {{ cc_display(order.cc_number) }}</div>
+  <div>expiration date: {{ order.cc_exp }}</div>
+  {% if order_items and order_items|length %}
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+  {% for item in order_items %}
+  <tr>
+    <td><a href="{{ url_for('product.show', id=item.product_id) }}">{{ item.product_name() }}</a></td>
+    <td>{{ price_display(item.product_price()) }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>{{ price_display(item.subtotal()) }}</td>
+  </tr>
+  {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}
+

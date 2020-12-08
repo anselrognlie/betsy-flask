@@ -1,0 +1,28 @@
+{
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.nosetestsEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "restructuredtext.confPath": "",
+  "python.linting.enabled": true,
+  "python.linting.pylintArgs": [
+    "--load-plugins",
+    "pylint_flask_sqlalchemy",
+    "pylint_flask"
+  ],
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    ".pytest_cache": true,
+    "**/__pycache__": true,
+    "betsy/*/**/__init__.py": true,
+    "tests/**/__init__.py": true
+  },
+  "explorerExclude.backup": null,
+  "python.linting.pylintEnabled": true
+}

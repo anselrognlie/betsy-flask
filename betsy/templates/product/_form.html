@@ -1,0 +1,15 @@
+{% from '_macros.html' import render_field, render_labeled_data %}
+
+{% macro product_form(form, form_action, merchant, action_name) %}
+<form method="POST" action="{{ form_action }}">
+  {{ form.csrf_token }}
+  {{ render_labeled_data('Merchant', merchant.name) }}
+  {{ render_field(form.name, size=20) }}
+  {{ render_field(form.description, size=20) }}
+  {{ render_field(form.photo_url, size=20) }}
+  {{ render_field(form.price, size=20) }}
+  {{ render_field(form.stock, size=20) }}
+  {{ render_field(form.discontinued) }}
+  <input type="submit" value="{{ action_name }}">
+</form>
+{% endmacro %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Categories</h1>
+{% if can_edit %}
+<a href="{{ url_for('category.create') }}">New</a>
+{% endif %}
+<ul>
+{% for category in categories %}
+  <li>
+    <a href="{{ url_for('category.show', id=category.id) }}">{{ category.name }}</a>
+    {% if can_edit %}
+    <a href="{{ url_for('category.update', id=category.id) }}">Edit</a>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>
+{% endblock %}

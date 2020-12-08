@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% from 'product_category/_form.html' import product_category_form %}
+
+{% block content %}
+<h1>Edit Product Catgories</h1>
+{{ product_category_form(form, form_action, 'Update Categories') }}
+{% endblock %}

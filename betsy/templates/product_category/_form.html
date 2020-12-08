@@ -1,0 +1,9 @@
+{% from '_macros.html' import render_field %}
+
+{% macro product_category_form(form, form_action, action_name) %}
+<form method="POST" action="{{ form_action }}">
+  {{ form.csrf_token }}
+  {{ render_field(form.categories) }}
+  <input type="submit" value="{{ action_name }}">
+</form>
+{% endmacro %}

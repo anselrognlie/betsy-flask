@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Order Confirmation</h1>
+<section>
+  {% if order.ordered_date %}
+  <div>ordered: {{ date_display(order.ordered_date, 'pending') }}</div>
+  {% endif %}
+  <div>status: {{ order.status }}</div>
+  {% if order_items and order_items|length %}
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+  {% for item in order_items %}
+  <tr>
+    <td><a href="{{ url_for('product.show', id=item.product_id) }}">{{ item.product_name() }}</a></td>
+    <td>{{ price_display(item.product_price()) }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>{{ price_display(item.subtotal()) }}</td>
+  </tr>
+  {% endfor %}
+      <tr>
+        <td colspan=3>Total</td>
+        <td>{{ price_display(order.total()) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+  {% if order.can_cancel() %}
+  {{ post_link('Cancel Order', link=url_for('order.cancel', id=order.id), prompt='Are you sure?') }}
+  {% endif %}
+</section>
+{% endblock %}
+

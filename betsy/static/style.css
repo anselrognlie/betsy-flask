@@ -1,0 +1,26 @@
+.completed {
+  text-decoration: line-through;
+}
+
+form.link {
+  display: inline;
+}
+
+form.link > input[type="submit"] {
+  display: none;
+}
+
+.dashboard-orders .order-details {
+  margin-bottom: 2em;
+}
+
+.dashboard-orders .order-details table {
+  width: 50%;
+  border: solid 1px black;
+}
+
+* {
+  xmargin: 0;
+  xpadding: 0;
+  xborder: 0;
+}

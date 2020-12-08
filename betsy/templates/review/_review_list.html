@@ -1,0 +1,8 @@
+{% from '_macros.html' import named_list %}
+{% from 'review/_review_item.html' import review_item %}
+
+{% macro review_list(reviews) %}
+{% call(review) named_list(reviews) %}
+  {{ review_item(review) }}
+{% endcall %}
+{% endmacro %}

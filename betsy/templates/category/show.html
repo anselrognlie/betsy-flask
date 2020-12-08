@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if can_edit %}
+<a href="{{ url_for('category.update', id=category.id) }}">Edit</a>
+{% endif %}
+
+<section>
+  <div>name: {{ category.name }}</div>
+  <div>products:</div>
+  {% call(list_item) named_list(products) %}
+      <a href="{{ url_for('product.show', id=list_item.id) }}">{{ list_item.name }}</a>
+  {% endcall %}
+</section>
+
+  <a href="{{ url_for('category.index') }}">View all</a>
+  {% endblock %}
+

@@ -1,0 +1,10 @@
+{% from 'order/_quantity.html' import quantity %}
+
+{%- macro add_product(product) -%}
+{%- if product.is_available() -%}
+<form method="POST" action="{{ url_for('order.add_product', product_id=product.id ) }}">
+  {{ quantity(product.stock, 'quantity') }}
+  <input type="submit" value="Add to cart">
+</form>
+{%- endif -%}
+{%- endmacro -%}

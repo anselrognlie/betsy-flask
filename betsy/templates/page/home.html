@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Home</h1>
+<ul>
+<li><a href='{{ url_for("merchant.index") }}'>View merchants</a></li>
+<li><a href='{{ url_for("category.index") }}'>View categories</a></li>
+<li><a href='{{ url_for("product.index") }}'>View products</a></li>
+</ul>
+{% endblock %}

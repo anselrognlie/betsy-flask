@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Manage Products</h1>
+<section>
+{% call(list_item) named_list(products) %}
+    <a href="{{ url_for('product.show', id=list_item.id) }}">{{ list_item.name }}</a>
+{% endcall %}
+</section>
+{% endblock %}

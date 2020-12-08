@@ -1,0 +1,11 @@
+{% from '_macros.html' import render_field, render_labeled_data %}
+
+{% macro review_form(form, form_action, product, action_name) %}
+<form method="POST" action="{{ form_action }}">
+  {{ form.csrf_token }}
+  {{ render_labeled_data('Product', product.name) }}
+  {{ render_field(form.rating) }}
+  {{ render_field(form.comment, size=20) }}
+  <input type="submit" value="{{ action_name }}">
+</form>
+{% endmacro %}

@@ -1,0 +1,17 @@
+{% from "_macros.html" import post_link, merchant_link, named_list, button_to %}
+
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Betsy{% endblock %}
+
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+
+{% block navbar %}
+{% include "shared/nav_bar.html" %}
+{% with messages=get_flashed_messages(with_categories=True) %}
+  {% include "shared/alert.html" %}
+{% endwith %}
+{% endblock %}

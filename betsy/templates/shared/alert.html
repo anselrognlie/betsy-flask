@@ -1,0 +1,9 @@
+{% if messages %}
+<section class="alert__container">
+{% for status, message in messages %}
+  <div class="alert alert-{{ status }}">
+    {{ message }}
+  </div>
+{% endfor %}
+</section>
+{% endif %}

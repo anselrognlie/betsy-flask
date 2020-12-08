@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<article class='dashboard-orders'>
+<h1>Manage Orders</h1>
+<section>
+<dl>total revenue</dl>
+</section>
+<section>
+<dd>{{ price_display(total_revenue) }}</dd>
+<table>
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th>Count</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for status in statuses %}
+    <tr>
+      <td>{{ status }}</td>
+      <td>{{ revenue_summary[status].count }}</td>
+      <td>{{ price_display(revenue_summary[status].total) }}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table>
+</section>
+<section>
+  {% for status in statuses %}
+    <h2>{{ status.capitalize() }} orders</h2>
+    {% if orders_summary[status] is defined %}
+      {% for id, summary in orders_summary[status].items() %}
+      <section class='order-details'>
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Date Completed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="{{ url_for('order.details', id=summary.order.id) }}">{{ summary.order.id }}</a></td>
+            <td>{{ date_display(summary.order.ordered_date, '-') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+            <th>Shipped On</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in summary.items %}
+          <tr>
+            <td><a href="{{ url_for('product.show', id=item.product_id) }}">{{ item.product_name() }}</a></td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ price_display(item.subtotal()) }}</td>
+            <td>
+              {% if item.shipped_date %}
+                {{ date_display(item.shipped_date) }}
+              {% elif item.can_ship() %}
+                {{ post_link('Ship', link=url_for('order_item.ship', id=item.id)) }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </section>
+      {% endfor %}
+    {% else %}
+    <p>No orders.</p>
+    {% endif %}
+  {% endfor %}
+</section>
+</article>
+{% endblock %}

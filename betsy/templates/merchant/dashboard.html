@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Dashboard {{ merchant.name_safe }}</h1>
+<ul>
+  <li><a href="{{ url_for('merchant.products') }}">Manage Products</a></li>
+  <li><a href="{{ url_for('merchant.orders') }}">Manage Orders</a></li>
+</ul>
+{% endblock %}

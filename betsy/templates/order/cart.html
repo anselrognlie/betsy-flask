@@ -1,0 +1,49 @@
+{% from 'order/_update_product.html' import update_product %}
+
+{% macro remove_button(item) %}
+  {{ button_to('Remove', link=url_for('order_item.delete', id=item.id), prompt='Are you sure?') }}
+{% endmacro %}
+
+{% macro checkout_button() %}
+  {{ button_to('Proceed to Checkout', method='get', link=url_for('order.checkout')) }}
+{% endmacro %}
+
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Cart</h1>
+{% if order_items|length %}
+<table>
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Price</th>
+      <th>Quantity</th>
+      <th></th>
+      <th>Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for item in order_items %}
+<tr>
+  <td><a href="{{ url_for('product.show', id=item.product_id) }}">{{ item.product_name() }}</a></td>
+  <td>{{ price_display(item.product_price()) }}</td>
+  <td>{{ item.quantity }}</td>
+  <td>
+    {{- update_product(item.product, item.quantity) -}}
+    {{ remove_button(item) }}</td>
+  <td>{{ price_display(item.subtotal()) }}</td>
+</tr>
+{% endfor %}
+    <tr>
+      <td colspan="4">Total</td>
+      <td>{{ price_display(order.total()) }}</td>
+    </tr>
+  </tbody>
+</table>
+{{ checkout_button() }}
+{% else %}
+<h2>Cart is empty</h2>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,11 @@
+<div>
+  <div><a href="{{ url_for('page.home') }}"">Home</a></div>
+  {% if logged_in %}
+    <a href="{{ url_for('merchant.show', id=session_user.id) }}" class="btn btn-primary">{{ session_user.name_safe }}</a>
+    <a href="{{ url_for('merchant.dashboard') }}" class="btn btn-primary">Dashboard</a>
+    {{ post_link('Log out', link=url_for('merchant.logout'), class='btn btn-primary') }}
+  {% else %}
+      {{ post_link('Sign up', link=url_for('auth.login'), class='btn btn-primary') }}
+  {% endif %}
+    <a href="{{ url_for('order.cart') }}" class="btn btn-primary">Cart</a>
+  </div>

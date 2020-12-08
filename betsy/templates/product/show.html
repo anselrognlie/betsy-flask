@@ -1,0 +1,41 @@
+{% from 'review/_review_list.html' import review_list %}
+{% from 'order/_add_product.html' import add_product %}
+
+{% extends 'base.html' %}
+
+{% block content %}
+{% if can_edit %}
+<a href="{{ url_for('product.update', id=product.id) }}">Edit</a>
+{% endif %}
+
+<section>
+  <div>name: {{ product.name }}</div>
+  <div>description: {{ product.description }}</div>
+  <div>price: {{ price_display(product.price) }}</div>
+  <div>photo_url: {{ product.photo_url }}</div>
+  <div><img src="{{ product.photo_url }}" /></div>
+  <div>
+    <span>stock: {{ product.stock }}</span>
+    {{ add_product(product) }}
+  </div>
+  <div>discontinued: {{ product.discontinued }}</div>
+  <div>merchant: {{ merchant_link(product.merchant) }}</div>
+  <div>categories:
+    {% if can_edit -%}
+    <a href="{{ url_for('product_category.update', id=product.id) }}">Edit</a>
+    {%- endif %}
+  </div>
+  {% call(list_item) named_list(product.categories) %}
+    <a href="{{ url_for('category.show', id=list_item.id) }}">{{ list_item.name }}</a>
+  {% endcall %}
+    <div>reviews:
+      {% if can_review %}
+      <a href="{{ url_for('review.create', product_id=product.id) }}">Add</a>
+      {% endif %}
+    </div>
+    {{ review_list(product.reviews) }}
+  </section>
+
+  <a href="{{ url_for('product.index') }}">View all</a>
+  {% endblock %}
+

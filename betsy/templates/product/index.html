@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Products</h1>
+{% if can_create %}
+<a href="{{ url_for('product.create') }}">New</a>
+{% endif %}
+<ul>
+{% for product in products %}
+  <li>
+    <a href="{{ url_for('product.show', id=product.id) }}">{{ product.name }}</a>
+  </li>
+{% endfor %}
+</ul>
+{% endblock %}
