@@ -105,6 +105,21 @@ pylint --generate-rcfile > .pylintrc
 [MASTER]
 init-hook='import sys; sys.path.append(".")'
 
+heroku
+======
+heroku git:remote -a <site-name>
+heroku addons:create heroku-postgresql:hobby-dev
+
+Database has been created and is available
+ ! This database is empty. If upgrading, you can transfer
+ ! data from another database with pg:copy
+Created postgresql-curly-84169 as DATABASE_URL
+Use heroku addons:docs heroku-postgresql to view documentation
+
+Procfile
+==========
+web: FLASK_APP=betsy FLASK_ENV=production python -m flask run
+
 Test
 ----
 
