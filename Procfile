@@ -1,1 +1,1 @@
-web: gunicorn betsy:create_app
+web: gunicorn betsy.wsgi:app
