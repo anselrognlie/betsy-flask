@@ -1,1 +1,1 @@
-web: gunicorn betsy:app
+web: gunicorn betsy:create_app
