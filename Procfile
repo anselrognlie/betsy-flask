@@ -1,1 +1,1 @@
-web: gunicorn app:betsy
+web: gunicorn betsy:app
