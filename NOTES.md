@@ -116,6 +116,18 @@ Database has been created and is available
 Created postgresql-curly-84169 as DATABASE_URL
 Use heroku addons:docs heroku-postgresql to view documentation
 
+in secret branch
+================
+remove instance from gitignore
+add config files
+restore gitignore
+back in main
+git push heroku secret:master
+
+heroku run FLASK_APP=betsy python -m flask db upgrade
+
+heroku run FLASK_APP=betsy python -m flask seed run
+
 Procfile
 ==========
 web: FLASK_APP=betsy FLASK_ENV=production python -m flask run
