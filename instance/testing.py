@@ -1,0 +1,4 @@
+TESTING = True
+SQLALCHEMY_DATABASE_URI = 'postgresql:///betsy_tst'
+ALLOW_IMPERSONATION = True
+WTF_CSRF_ENABLED = False

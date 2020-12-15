@@ -1,0 +1,4 @@
+DEVELOPMENT = True
+DEBUG = True
+SQLALCHEMY_DATABASE_URI = 'postgresql:///betsy_dev'
+ALLOW_IMPERSONATION = True
