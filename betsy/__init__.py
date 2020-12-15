@@ -27,6 +27,8 @@ def create_app(test_config=None):
         app.config.from_pyfile("testing.py")
         app.config.update(test_config)
 
+    # print(', '.join((str(ord(char)) for char in app.config.get('SECRET_KEY'))))
+
     app.config.update(
         GITHUB_CLIENT_ID=os.environ.get('GITHUB_CLIENT_ID'),
         GITHUB_CLIENT_SECRET=os.environ.get('GITHUB_CLIENT_SECRET'),
