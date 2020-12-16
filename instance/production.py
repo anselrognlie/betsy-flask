@@ -4,10 +4,13 @@ from distutils.util import strtobool
 def simple_bool(value):
     if hasattr(value, 'lower'):
         return strtobool(value)
-
     return value
 
+def utf8_string(value):
+    return bytes(value, "utf-8").decode("unicode_escape")
+
 # pylint: disable=line-too-long
+SECRET_KEY = utf8_string(os.environ['SECRET_KEY'])
 SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 TESTING = simple_bool(os.environ.get('TESTING', False))
 DEBUG = simple_bool(os.environ.get('DEBUG', False))
