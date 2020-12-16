@@ -1,5 +1,3 @@
-import contextlib
-
 from flask_sqlalchemy import Model
 
 from sqlalchemy.schema import Column
@@ -7,19 +5,7 @@ from sqlalchemy.types import BigInteger, TIMESTAMP
 from sqlalchemy.sql import functions as func
 
 from .model_base_deps import model_base_deps
-
-@contextlib.contextmanager
-def transaction(session):
-    if model_base_deps.transaction:
-        raise RuntimeError("already in transaction")
-
-    model_base_deps.transaction = session
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
+from .transaction import transaction
 
 class ModelBase(Model):
     id = Column(BigInteger, primary_key=True)
@@ -33,6 +19,7 @@ class ModelBase(Model):
         for (key, value) in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+        self.save()
 
     @classmethod
     def db(cls):  # pylint: disable=invalid-name
@@ -40,7 +27,7 @@ class ModelBase(Model):
 
     @classmethod
     def transaction(cls):
-        return transaction(cls.db().session)
+        return transaction(cls.db().session, model_base_deps)
 
     def save(self):
         # pylint: disable=no-member
