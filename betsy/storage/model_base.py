@@ -1,8 +1,25 @@
+import contextlib
+
 from flask_sqlalchemy import Model
 
 from sqlalchemy.schema import Column
 from sqlalchemy.types import BigInteger, TIMESTAMP
 from sqlalchemy.sql import functions as func
+
+from .model_base_deps import model_base_deps
+
+@contextlib.contextmanager
+def transaction(session):
+    if model_base_deps.transaction:
+        raise RuntimeError("already in transaction")
+
+    model_base_deps.transaction = session
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
 
 class ModelBase(Model):
     id = Column(BigInteger, primary_key=True)
@@ -16,3 +33,18 @@ class ModelBase(Model):
         for (key, value) in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+
+    @classmethod
+    def db(cls):  # pylint: disable=invalid-name
+        return model_base_deps.db
+
+    @classmethod
+    def transaction(cls):
+        return transaction(cls.db().session)
+
+    def save(self):
+        # pylint: disable=no-member
+        self.db().session.add(self)
+
+        if not model_base_deps.transaction:
+            self.db().session.commit()
