@@ -5,6 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python: Gunicorn Betsy",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/.venv/bin/gunicorn",
+      "args": [
+        "betsy.wsgi:app"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Python: Flask",
       "type": "python",
       "request": "launch",
