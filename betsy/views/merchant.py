@@ -13,7 +13,7 @@ from ..models.merchant import Merchant
 from ..dao.builder.merchant_dao_builder import MerchantDaoBuilder
 from ..keys import ALLOW_IMPERSONATION
 from ..forms.merchant import Form
-from ..storage.db import db
+from ..logging.logger import logger
 from .helper.session_helper import get_logged_in_user_id, set_logged_in_user_id
 from .helper.auth_helper import get_current_user, require_login
 
@@ -128,18 +128,22 @@ def update():  # pylint: disable=redefined-builtin, invalid-name
     form = Form(obj=merchant)
 
     if form.validate_on_submit():
-        merchant.update(**merchant_params(form))
-        db.session.commit()
+        try:
+            merchant.update(**merchant_params(form))
+            return redirect(url_for('merchant.show', id=merchant.id))
 
-        return redirect(url_for('merchant.show', id=merchant.id))
-    else:
-        context = dict(
-            merchant=merchant,
-            form=form,
-            form_action=url_for('merchant.update')
-            )
+        except Exception:  # pylint: disable=broad-except
+            msg = 'failed to save merchant'
+            logger.exception(msg)
+            flash(msg, 'error')
 
-        return render_template('merchant/update.html', **context)
+    context = dict(
+        merchant=merchant,
+        form=form,
+        form_action=url_for('merchant.update')
+        )
+
+    return render_template('merchant/update.html', **context)
 
 def merchant_params(form):
     return dict(

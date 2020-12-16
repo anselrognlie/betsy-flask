@@ -54,6 +54,7 @@ class OrderItem(db.Model):
     def prepare_cancel(self):
         # pylint: disable=no-member
         self.product.stock += self.quantity
+        self.save()
 
     def can_ship(self):
         return self.shipped_date is None and self.order.status == OrderStatus.PAID.value  # pylint: disable=no-member

@@ -11,6 +11,7 @@ from flask import request
 from ..models.order import Order
 from ..models.product import Product
 from ..forms.order import Form
+from ..logging.logger import logger
 from .helper.session_helper import get_cart_id, set_cart_id
 from .helper.auth_helper import get_current_user
 from .helper.order_helper import require_cart
@@ -124,8 +125,12 @@ def cancel(id):  # pylint: disable=invalid-name, redefined-builtin
         flash('Invalid order', 'error')
         return redirect(url_for('page.home'))
 
-    if not order.cancel():
-        flash('Unable to cancel order', 'error')
+    try:
+        order.cancel()
+    except Exception as ex:
+        msg = 'Unable to cancel order'
+        logger.exception(msg)
+        flash(msg, 'error')
 
     return redirect(url_for('order.show', id=id))
 

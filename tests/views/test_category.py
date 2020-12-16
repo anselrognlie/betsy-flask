@@ -4,11 +4,14 @@ from flask import url_for
 
 from betsy.models.category import Category
 from betsy.models.merchant import Merchant
+from betsy.logging.logger import logger
 
 from ..test_lib.helpers.flask_helper import assert_flashes, perform_login
 from ..test_lib.helpers.model_helpers import (
     make_category, make_merchant
 )
+from ..test_lib.mocks.simple_mocker import SimpleMocker
+from ..test_lib.mocks.mock_attributes import MockAttributes
 
 class TestWithSetup:
     # pylint: disable=no-self-use
@@ -93,3 +96,25 @@ class TestWithSetup:
             assert result.status_code == 302
             assert result.location.endswith(url_for('category.show', id=category.id))
             assert category.name == 'new category'
+
+    def test_post_create_category_fails(self):
+        mock = MockAttributes()
+
+        def save_error():
+            raise RuntimeError()
+        mock.register(Category, 'save', save_error)
+
+        errors = []
+        def my_log(ex):
+            errors.append(ex)
+        mock.register(logger, 'exception', my_log)
+
+        with self.app.test_request_context(), SimpleMocker([mock]):
+            self.perform_login()
+
+            result = self.client.post(url_for('category.create'), data=dict(
+                name='new category'
+            ))
+
+            assert result.status_code == 200
+            assert str(errors[0]) == 'failed to save category'

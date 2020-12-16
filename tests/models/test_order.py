@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime
 
+from betsy.errors.model_error import ModelError
 from betsy.models.order import Order
 from betsy.models.order_status import OrderStatus
 from betsy.models.product import Product
@@ -331,9 +332,8 @@ class TestCancelAndCompletion:
         with app.app_context():
             order = Order.find_by_id(self.order_id)
 
-            result = order.cancel()
+            order.cancel()
 
-            assert result
             assert order.status == OrderStatus.CANCELLED.value
 
     def test_cancel_noncancellable_order(self, app):
@@ -342,9 +342,9 @@ class TestCancelAndCompletion:
             item = order.order_items[0]
             item.ship(item.product.merchant)
 
-            result = order.cancel()
+            with pytest.raises(ModelError):
+                order.cancel()
 
-            assert not result
             assert order.status == OrderStatus.PAID.value
 
     def test_refresh_incomplete_order(self, app):

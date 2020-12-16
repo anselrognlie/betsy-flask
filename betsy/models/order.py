@@ -3,8 +3,9 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from .order_item import OrderItem
 from .order_status import OrderStatus
 from .product import Product
-from ..storage.db import db
+from ..errors.model_error import ModelError
 from ..helpers import time as mytime
+from ..storage.db import db
 
 class Order(db.Model):
     # pylint: disable=missing-class-docstring, too-few-public-methods
@@ -113,15 +114,13 @@ class Order(db.Model):
 
     def cancel(self):
         if not self.can_cancel():
-            return False
+            raise ModelError("order cannot be cancelled")
 
-        self.status = OrderStatus.CANCELLED.value
-
-        for item in self.order_items:  # pylint: disable=not-an-iterable
-            item.prepare_cancel()
-
-        db.session.commit()
-        return True
+        with Order.transaction():
+            self.status = OrderStatus.CANCELLED.value
+            for item in self.order_items:  # pylint: disable=not-an-iterable
+                item.prepare_cancel()
+            self.save()
 
     def items_for_merchant(self, merchant):
         # pylint: disable=no-member

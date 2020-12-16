@@ -6,7 +6,7 @@ from flask import url_for
 
 from ..forms.category import Form
 from ..models.category import Category
-from ..storage.db import db
+from ..logging.logger import logger
 from .helper.auth_helper import require_login, is_logged_in
 
 bp = Blueprint("category", __name__, url_prefix='/categories')
@@ -52,18 +52,21 @@ def handle_shared_form(category, form_action, template):
     form = Form(obj=category)
 
     if form.validate_on_submit():
-        category.update(**category_params(form))
-        db.session.add(category)
-        db.session.commit()
+        try:
+            category.update(**category_params(form))
+            return redirect(url_for('category.show', id=category.id))
 
-        return redirect(url_for('category.show', id=category.id))
-    else:
-        context = dict(
-            form=form,
-            form_action=form_action
-            )
+        except Exception:  # pylint: disable=broad-except
+            msg = 'failed to save category'
+            logger.exception(msg)
+            flash(msg, 'error')
 
-        return render_template(template, **context)
+    context = dict(
+        form=form,
+        form_action=form_action
+        )
+
+    return render_template(template, **context)
 
 def category_params(form):
     return dict(
