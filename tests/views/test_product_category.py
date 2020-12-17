@@ -85,7 +85,7 @@ class TestWithSetup:
             result = self.client.post(url_for('product_category.update', id=product.id),
                 data=categories)
 
-            self.session.refresh(product)
+            product.reload()
             categories = product.categories.all()
 
             assert result.status_code == 302
@@ -114,7 +114,7 @@ class TestWithSetup:
             result = self.client.post(url_for('product_category.update', id=product.id),
                 data=categories)
 
-            self.session.refresh(product)
+            product.reload()
             categories = product.categories.all()
 
             assert result.status_code == 200

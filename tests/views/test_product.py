@@ -118,7 +118,7 @@ class TestWithSetup:
             result = self.client.post(url_for('product.update', id=product.id),
                 data=product_hash)
 
-            self.session.refresh(product)
+            product.reload()
 
             assert result.status_code == 302
             assert result.location.endswith(url_for('product.show', id=product.id))
@@ -136,7 +136,7 @@ class TestWithSetup:
             result = self.client.post(url_for('product.update', id=product.id),
                 data=product_hash)
 
-            self.session.refresh(product)
+            product.reload()
 
             assert result.status_code == 200
             assert_no_flashes(self.client)
@@ -152,7 +152,7 @@ class TestWithSetup:
             result = self.client.post(url_for('product.update', id=product.id),
                 data=product_hash)
 
-            self.session.refresh(product)
+            product.reload()
 
             assert result.status_code == 200
             assert_no_flashes(self.client)
@@ -178,7 +178,7 @@ class TestWithSetup:
             result = self.client.post(url_for('product.update', id=product.id),
                 data=product_hash)
 
-            self.session.refresh(product)
+            product.reload()
 
             assert result.status_code == 200
             assert product.name == 'product-0'

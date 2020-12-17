@@ -154,7 +154,7 @@ class TestWithMerchants:
                 name='new name'
             ))
 
-            self.session.refresh(merchant)
+            merchant.reload()
 
             assert result.status_code == 302
             assert result.location.endswith(url_for('merchant.show', id=merchant.id))

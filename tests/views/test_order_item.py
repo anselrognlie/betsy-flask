@@ -91,7 +91,7 @@ class TestWithSetup(CartTestMixin):
 
             result = self.client.post(url_for('order_item.ship', id=item.id))
 
-            self.session.refresh(item)
+            item.reload()
             assert item.shipped_date == datetime(2020, 9, 1)
             assert result.status_code == 302
             assert result.location.endswith(url_for('merchant.orders'))
