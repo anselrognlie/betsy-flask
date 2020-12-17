@@ -7,7 +7,7 @@ from flask import url_for
 from ..forms.review import Form
 from ..models.review import Review
 from ..models.product import Product
-from ..storage.db import db
+from ..logging.logger import logger
 from .helper.route_helper import redirect_home
 from .helper.product_helper import can_review
 
@@ -36,19 +36,22 @@ def handle_shared_form(review, form_action, template):
     form = Form(obj=review)
 
     if form.validate_on_submit():
-        review.update(**review_params(form))
-        db.session.add(review)
-        db.session.commit()
+        try:
+            review.update(**review_params(form))
+            return redirect(url_for('product.show', id=review.product.id))
 
-        return redirect(url_for('product.show', id=review.product.id))
-    else:
-        context = dict(
-            form=form,
-            form_action=form_action,
-            product=review.product
-            )
+        except Exception:  # pylint: disable=broad-except
+            msg = 'failed to save review'
+            flash(msg, 'error')
+            logger.exception(msg)
 
-        return render_template(template, **context)
+    context = dict(
+        form=form,
+        form_action=form_action,
+        product=review.product
+        )
+
+    return render_template(template, **context)
 
 def review_params(form):
     return dict(

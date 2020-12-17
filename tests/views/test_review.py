@@ -4,11 +4,15 @@ from flask import url_for
 
 from betsy.models.merchant import Merchant
 from betsy.models.product import Product
+from betsy.models.review import Review
+from betsy.logging.logger import logger
 
 from ..test_lib.helpers.flask_helper import assert_flashes, assert_no_flashes, perform_login
 from ..test_lib.helpers.model_helpers import (
     make_product
 )
+from ..test_lib.mocks.mock_attributes import MockAttributes
+from ..test_lib.mocks.simple_mocker import SimpleMocker
 
 class TestWithSetup:
     # pylint: disable=no-self-use
@@ -69,7 +73,7 @@ class TestWithSetup:
                     comment='my review'
                 ))
 
-            self.session.refresh(product)
+            product.reload()
             reviews = product.reviews.all()
 
             assert result.status_code == 302
@@ -77,4 +81,33 @@ class TestWithSetup:
             assert len(reviews) == 1
             assert reviews[0].rating == 3
             assert reviews[0].comment == 'my review'
+            assert_no_flashes(self.client)
+
+    def test_post_create_product_review_fails(self):
+        def update_fails(*_args, **_kwargs):
+            self.session.rollback()
+            raise RuntimeError()
+
+        errors = []
+        def my_log(ex):
+            errors.append(ex)
+
+        mock = MockAttributes()
+        mock.register(Review, 'update', update_fails)
+        mock.register(logger, 'exception', my_log)
+
+        with self.app.test_request_context(), SimpleMocker([mock]):
+            product = Product.find_by_id(self.products_ids[0])
+
+            result = self.client.post(url_for('review.create', product_id=product.id),
+                data=dict(
+                    rating=3,
+                    comment='my review'
+                ))
+
+            product.reload()
+            reviews = product.reviews.all()
+
+            assert result.status_code == 200
+            assert len(reviews) == 0
             assert_no_flashes(self.client)
