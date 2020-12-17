@@ -26,6 +26,7 @@ class Product(db.Model):
 
     def update_categories(self, categories):
         self.categories = categories
+        self.save()
 
     def is_available(self):
         return self.stock > 0 and not self.discontinued

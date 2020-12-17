@@ -4,11 +4,14 @@ from flask import url_for
 
 from betsy.models.merchant import Merchant
 from betsy.models.product import Product
+from betsy.logging.logger import logger
 
 from ..test_lib.helpers.flask_helper import assert_flashes, assert_no_flashes, perform_login
 from ..test_lib.helpers.model_helpers import (
     make_product, make_product_hash
 )
+from ..test_lib.mocks.simple_mocker import SimpleMocker
+from ..test_lib.mocks.mock_attributes import MockAttributes
 
 class TestWithSetup:
     # pylint: disable=no-self-use
@@ -153,3 +156,31 @@ class TestWithSetup:
 
             assert result.status_code == 200
             assert_no_flashes(self.client)
+
+    def test_post_update_product_fails(self):
+        def update_fails(*args, **kwargs):
+            raise RuntimeError()
+
+        errors = []
+        def my_log(ex):
+            errors.append(ex)
+
+        mock = MockAttributes()
+        mock.register(Product, 'update', update_fails)
+        mock.register(logger, 'exception', my_log)
+
+        with self.app.test_request_context(), SimpleMocker([mock]):
+            product = Product.find_by_id(self.products_ids[0])
+            merchant = product.merchant
+            perform_login(self.client, merchant)
+
+            product_hash = make_product_hash(6)
+            result = self.client.post(url_for('product.update', id=product.id),
+                data=product_hash)
+
+            self.session.refresh(product)
+
+            assert result.status_code == 200
+            assert product.name == 'product-0'
+            assert_no_flashes(self.client)
+            assert str(errors[0]) == 'failed to update product'

@@ -6,7 +6,7 @@ from flask import url_for
 
 from ..models.product import Product
 from ..forms.product import Form
-from ..storage.db import db
+from ..logging.logger import logger
 from .helper.auth_helper import get_current_user, require_login
 from .helper.product_helper import can_review, can_edit, can_create
 
@@ -62,19 +62,21 @@ def handle_shared_form(product, form_action, template):
     form = Form(obj=product)
 
     if form.validate_on_submit():
-        product.update(**product_params(form))
-        db.session.add(product)
-        db.session.commit()
+        try:
+            product.update(**product_params(form))
+            return redirect(url_for('product.show', id=product.id))
+        except Exception:  # pylint: disable=broad-except
+            msg = 'failed to update product'
+            logger.exception(msg)
+            flash(msg, 'error')
 
-        return redirect(url_for('product.show', id=product.id))
-    else:
-        context = dict(
-            form=form,
-            form_action=form_action,
-            merchant=product.merchant
-        )
+    context = dict(
+        form=form,
+        form_action=form_action,
+        merchant=product.merchant
+    )
 
-        return render_template(template, **context)
+    return render_template(template, **context)
 
 def product_params(form):
     return dict(

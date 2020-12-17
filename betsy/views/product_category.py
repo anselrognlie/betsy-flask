@@ -7,7 +7,7 @@ from flask import g
 
 from ..models.product import Product
 from ..forms.product_category import Form
-from ..storage.db import db
+from ..logging.logger import logger
 from .helper.auth_helper import require_login
 
 bp = Blueprint("product_category", __name__, url_prefix='/products')
@@ -33,17 +33,21 @@ def handle_shared_form(product, form_action, template):
     if form.validate_on_submit():
         params = product_params(form)
         categories = params.get('categories', [])
-        product.update_categories(categories)
-        db.session.commit()
 
-        return redirect(url_for('product.show', id=product.id))
-    else:
-        context = dict(
-            form=form,
-            form_action=form_action
-            )
+        try:
+            product.update_categories(categories)
+            return redirect(url_for('product.show', id=product.id))
+        except Exception:  # pylint: disable=broad-except
+            msg = 'failed to update categories'
+            logger.exception(msg)
+            flash(msg, 'error')
 
-        return render_template(template, **context)
+    context = dict(
+        form=form,
+        form_action=form_action
+        )
+
+    return render_template(template, **context)
 
 def product_params(form):
     return dict(
