@@ -1,7 +1,8 @@
-from ..storage.db import db
 from .product import Product
 from .order_status import OrderStatus
 from ..helpers import time as mytime
+from ..storage.db import db
+from ..errors.model_error import ModelError
 
 class OrderItem(db.Model):
     # pylint: disable=missing-class-docstring, too-few-public-methods
@@ -31,22 +32,21 @@ class OrderItem(db.Model):
     def subtotal(self):
         return self.product_price() * self.quantity
 
-    def destroy(self):
+    def delete(self):
         # only destroy if in a pending order
         if self.order.status != OrderStatus.PENDING.value:  # pylint: disable=no-member
-            return False
+            raise ModelError("order item cannot be deleted")
 
-        db.session.delete(self)
-        db.session.commit()
-        return True
+        self.destroy()
 
     def is_valid(self):
         return self.quantity <= self.product.stock  # pylint: disable=no-member
 
-    def prepare_commit(self):
+    def prepare_checkout(self):
         # pylint: disable=no-member
         self.purchase_price = self.product.price
         self.product.stock -= self.quantity
+        self.save()
 
     def is_shipped(self):
         return self.shipped_date is not None
@@ -61,13 +61,26 @@ class OrderItem(db.Model):
 
     def ship(self, merchant):
         if not self.can_ship():
-            return False
+            raise ModelError("order item cannot be shipped")
 
         if not merchant or merchant.id != self.product.merchant_id:  # pylint: disable=no-member
-            return False
+            raise ModelError("order item cannot be shipped")
 
-        self.shipped_date = mytime.TimeProvider.now()
-        return self.order.refresh_status()  # pylint: disable=no-member
+        with OrderItem.transaction():
+            self.shipped_date = mytime.TimeProvider.now()
+            self.save()
+            self.order.refresh_status()  # pylint: disable=no-member
+
+    def update_quantity(self, quantity):
+        if quantity < 0 or quantity > self.product.stock:  # pylint: disable=no-member
+            raise ModelError('invalid product quantity')
+
+        if quantity == 0:
+            self.delete()
+            return
+
+        self.quantity = quantity
+        self.save()
 
     @staticmethod
     def find_by_merchant(merchant):

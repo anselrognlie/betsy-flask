@@ -2,7 +2,10 @@ import pytest
 
 from flask import url_for
 
+import betsy.views.helper.order_helper as order_helper
 from betsy.models.product import Product
+from betsy.models.order import Order
+from betsy.errors.model_error import ModelError
 
 from ..test_lib.helpers.cart_test_mixin import CartTestMixin
 from ..test_lib.helpers.flask_helper import assert_flashes, assert_no_flashes, perform_login
@@ -10,9 +13,8 @@ from ..test_lib.helpers.model_helpers import (
     add_order_product, make_merchant, make_order_with_status,
     make_product, make_order, make_order_hash
 )
-from ..test_lib.mocks.mock_checkout import MockCheckout
+from ..test_lib.mocks.mock_attributes import MockAttributes
 from ..test_lib.mocks.simple_mocker import SimpleMocker
-from ..test_lib.mocks.mock_cart import MockCart
 
 def test_show_cart(app, client):
     with app.test_request_context():
@@ -28,7 +30,13 @@ def test_show_cart_after_loaded(app, client):
         assert result.status_code == 200
 
 def test_show_cart_failure(app, client):
-    with app.test_request_context(), SimpleMocker([MockCart(None)]):
+    def no_cart():
+        return None
+
+    mock = MockAttributes()
+    mock.register(order_helper, 'get_cart', no_cart)
+
+    with app.test_request_context(), SimpleMocker([mock]):
         result = client.get(url_for('order.cart'))
 
         assert result.status_code == 302
@@ -160,7 +168,13 @@ class TestShopping(CartTestMixin):
             assert_flashes(self.client, 'Unable to process checkout', 'error')
 
     def test_post_failed_checkout(self):
-        with self.app.test_request_context(), SimpleMocker([MockCheckout(False)]):
+        def checkout_raise(*args, **kwargs):
+            raise ModelError()
+
+        mock = MockAttributes()
+        mock.register(Order, 'checkout', checkout_raise)
+
+        with self.app.test_request_context(), SimpleMocker([mock]):
             self.client.post(
                 url_for('order.add_product', product_id=self.product_ids[1]),
                 data=dict(quantity=2))

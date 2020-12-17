@@ -29,8 +29,7 @@ class Order(db.Model):
     @staticmethod
     def make_cart():
         cart = Order()
-        db.session.add(cart)
-        db.session.commit()
+        cart.save()
 
         return cart
 
@@ -49,31 +48,22 @@ class Order(db.Model):
             quantity += existing_item.quantity
 
         if quantity > product.stock:
-            return False
+            raise ModelError('invalid stock for order')
 
         if existing_item:
-            existing_item.quantity = quantity
+            existing_item.update_quantity(quantity)
         else:
-            self.order_items.append(OrderItem(product=product, quantity=quantity))  # pylint: disable=no-member
-
-        db.session.commit()
-        return True
+            with Order.transaction():
+                self.order_items.append(OrderItem(product=product, quantity=quantity))  # pylint: disable=no-member
+                self.save()
 
     def update_product(self, product, quantity):
         # if there is an existing order_item, update the desired quantity
         existing_item = self.find_item_by_product(product)
-        if existing_item is None or quantity < 0:
-            return False
+        if existing_item is None:
+            raise ModelError('invalid product')
 
-        if quantity == 0:
-            return existing_item.destroy()
-
-        if quantity > product.stock:
-            return False
-
-        existing_item.quantity = quantity
-        db.session.commit()
-        return True
+        existing_item.update_quantity(quantity)
 
     def can_checkout(self):
         if self.status != OrderStatus.PENDING.value:
@@ -90,17 +80,17 @@ class Order(db.Model):
 
     def checkout(self, **kwargs):
         if not self.can_checkout():
-            return False
+            raise ModelError('unable to checkout')
 
-        self.update(**kwargs)
-        self.status = OrderStatus.PAID.value
-        self.ordered_date = mytime.TimeProvider.now()
+        with Order.transaction():
+            self.update(**kwargs)
+            self.status = OrderStatus.PAID.value
+            self.ordered_date = mytime.TimeProvider.now()
 
-        for item in self.order_items:  # pylint: disable=not-an-iterable
-            item.prepare_commit()
+            for item in self.order_items:  # pylint: disable=not-an-iterable
+                item.prepare_checkout()
 
-        db.session.commit()
-        return True
+            self.save()
 
     def can_cancel(self):
         if self.status != OrderStatus.PAID.value:
@@ -137,5 +127,4 @@ class Order(db.Model):
             if complete:
                 self.status = OrderStatus.COMPLETED.value
 
-        db.session.commit()
-        return True
+        self.save()

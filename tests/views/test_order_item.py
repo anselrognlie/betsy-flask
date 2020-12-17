@@ -9,7 +9,9 @@ from betsy.models.product import Product
 from ..test_lib.mocks.mock_now import MockNow
 from ..test_lib.mocks.simple_mocker import SimpleMocker
 from ..test_lib.helpers.cart_test_mixin import CartTestMixin
-from ..test_lib.helpers.flask_helper import assert_flashes, assert_no_flashes, clear_flash, perform_login
+from ..test_lib.helpers.flask_helper import (
+    assert_flashes, assert_no_flashes, clear_flash, perform_login
+)
 from ..test_lib.helpers.model_helpers import (
     add_order_product, make_merchant, make_order_with_status, make_product
 )
@@ -76,7 +78,7 @@ class TestWithSetup(CartTestMixin):
             assert len(items) == 1
             assert result.status_code == 302
             assert result.location.endswith(url_for('order.cart'))
-            assert_flashes(self.client, 'Could not update order', 'error')
+            assert_flashes(self.client, 'Failed to delete order item', 'error')
 
     def test_ship_item(self):
         with self.app.test_request_context(), SimpleMocker([MockNow(datetime(2020, 9, 1))]):
@@ -106,7 +108,7 @@ class TestWithSetup(CartTestMixin):
             assert result.location.endswith(url_for('merchant.orders'))
             assert_flashes(self.client, 'Could not ship order', 'error')
 
-    def test_ship_item_for_ivalid_order(self):
+    def test_ship_item_for_invalid_order(self):
         with self.app.test_request_context(), SimpleMocker([MockNow(datetime(2020, 9, 1))]):
             order = make_order_with_status(self.session, 0)
             product = Product.find_by_id(self.product_ids[1])
@@ -119,4 +121,4 @@ class TestWithSetup(CartTestMixin):
 
             assert result.status_code == 302
             assert result.location.endswith(url_for('merchant.orders'))
-            assert_flashes(self.client, 'Could not ship order', 'error')
+            assert_flashes(self.client, 'Failed to ship order item', 'error')

@@ -79,14 +79,13 @@ class TestAddProduct:
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[1])
 
-            added = order.add_product(product, 1)
+            order.add_product(product, 1)
 
             expected_quantities = {
                 self.product_ids[0]: 5,
                 self.product_ids[1]: 1
             }
 
-            assert added
             items = order.order_items.all()
             assert len(items) == 2
             for item in items:
@@ -97,13 +96,12 @@ class TestAddProduct:
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[0])
 
-            added = order.add_product(product, 1)
+            order.add_product(product, 1)
 
             expected_quantities = {
                 self.product_ids[0]: 6,
             }
 
-            assert added
             items = order.order_items.all()
             assert len(items) == 1
             for item in items:
@@ -114,31 +112,28 @@ class TestAddProduct:
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[1])
 
-            added = order.add_product(product, 3)
-
-            assert not added
+            with pytest.raises(ModelError):
+                order.add_product(product, 3)
 
     def test_update_new_product_to_order(self, app):
         with app.app_context():
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[1])
 
-            updated = order.update_product(product, 1)
-
-            assert not updated
+            with pytest.raises(ModelError):
+                order.update_product(product, 1)
 
     def test_update_existing_product_to_order(self, app):
         with app.app_context():
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[0])
 
-            updated = order.update_product(product, 3)
+            order.update_product(product, 3)
 
             expected_quantities = {
                 self.product_ids[0]: 3,
             }
 
-            assert updated
             items = order.order_items.all()
             assert len(items) == 1
             for item in items:
@@ -149,27 +144,24 @@ class TestAddProduct:
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[0])
 
-            updated = order.update_product(product, 11)
-
-            assert not updated
+            with pytest.raises(ModelError):
+                order.update_product(product, 11)
 
     def test_update_invalid_quantity_to_order(self, app):
         with app.app_context():
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[0])
 
-            updated = order.update_product(product, -1)
-
-            assert not updated
+            with pytest.raises(ModelError):
+                order.update_product(product, -1)
 
     def test_update_zero_quantity_in_order(self, app):
         with app.app_context():
             order = Order.find_by_id(self.order_id)
             product = Product.find_by_id(self.product_ids[0])
 
-            updated = order.update_product(product, 0)
+            order.update_product(product, 0)
 
-            assert updated
             items = order.order_items.all()
             assert len(items) == 0
 
@@ -268,17 +260,15 @@ class TestCheckout:
         with app.app_context():
             order = Order.make_cart()
 
-            result = order.checkout()
-
-            assert not result
+            with pytest.raises(ModelError):
+                order.checkout()
 
     def test_can_checkout_valid_order(self, app):
         with app.app_context(), SimpleMocker([MockNow(datetime(2020, 9, 1))]):
             order = Order.find_by_id(self.cart_id)
 
-            result = order.checkout(**make_checkout_kwargs(1))
+            order.checkout(**make_checkout_kwargs(1))
 
-            assert result
             product = Product.find_by_id(self.product_ids[0])
             assert product.stock == 0
             assert order.status == 'paid'

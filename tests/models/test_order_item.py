@@ -5,6 +5,7 @@ from betsy.models.merchant import Merchant
 from betsy.models.product import Product
 from betsy.models.order_item import OrderItem
 from betsy.models.order import Order
+from betsy.errors.model_error import ModelError
 
 from ..test_lib.helpers.model_helpers import (
     add_order_product, make_product, make_order_with_status
@@ -81,11 +82,11 @@ class TestWithSimpleItemSetup:
 
             assert not result
 
-    def test_order_item_prepare_commit(self, app):
+    def test_order_item_prepare_checkout(self, app):
         with app.app_context():
             item = OrderItem.find_by_id(self.item_id)
 
-            item.prepare_commit()
+            item.prepare_checkout()
 
             assert item.purchase_price == item.product.price
             assert item.product.stock == 0
@@ -94,7 +95,7 @@ class TestWithSimpleItemSetup:
         with app.app_context():
             item = OrderItem.find_by_id(self.item_id)
 
-            item.destroy()
+            item.delete()
             item = OrderItem.find_by_id(self.item_id)
 
             assert item is None
@@ -105,10 +106,9 @@ class TestWithSimpleItemSetup:
             product = Product.find_by_id(self.product_id)
             items = [add_order_product(session, order, product, 1) for order in orders]
 
-            results = [item.destroy() for item in items]
-
-            for result in results:
-                assert not result
+            for item in items:
+                with pytest.raises(ModelError):
+                    item.delete()
 
 class TestWithNonCartSetup:
     @pytest.fixture(autouse=True)
@@ -185,35 +185,30 @@ class TestWithNonCartSetup:
             item = OrderItem.find_by_id(self.item_id)
             item.shipped_date = date(2020, 9, 1)
 
-            result = item.ship(None)
-
-            assert not result
+            with pytest.raises(ModelError):
+                item.ship(None)
 
     def test_order_item_fails_to_ship_with_no_merchant(self, app):
         with app.app_context():
             item = OrderItem.find_by_id(self.item_id)
 
-            result = item.ship(None)
-
-            assert not result
+            with pytest.raises(ModelError):
+                item.ship(None)
 
     def test_order_item_ships_with_valid_merchant(self, app):
         with app.app_context():
             item = OrderItem.find_by_id(self.item_id)
 
-            result = item.ship(item.product.merchant)
-
-            assert result
+            item.ship(item.product.merchant)
 
     def test_order_item_fails_to_ship_with_invalid_merchant(self, app):
         with app.app_context():
             item = OrderItem.find_by_id(self.item_id)
             merchant = Merchant.find_by_id(self.other_merchant_id)
-
-            result = item.ship(merchant)
-
             assert merchant is not None
-            assert not result
+
+            with pytest.raises(ModelError):
+                item.ship(merchant)
 
 def test_order_item_get_items_by_merchant(app, session):
     with app.app_context():
@@ -225,4 +220,3 @@ def test_order_item_get_items_by_merchant(app, session):
 
         assert len(items) == 1
         assert items[0].id == item.id
-

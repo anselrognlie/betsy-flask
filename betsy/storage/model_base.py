@@ -35,3 +35,10 @@ class ModelBase(Model):
 
         if not model_base_deps.transaction:
             self.db().session.commit()
+
+    def destroy(self):
+        # pylint: disable=no-member
+        self.db().session.delete(self)
+
+        if not model_base_deps.transaction:
+            self.db().session.commit()

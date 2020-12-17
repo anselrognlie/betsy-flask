@@ -2,20 +2,11 @@ import pytest
 
 from betsy.storage.transaction import transaction
 
+from ..test_lib.mocks.mock_session import MockSession
+
 class MockTransactionHost:
     def __init__(self):
         self.transaction = None
-
-class MockSession:
-    def __init__(self):
-        self.commit_called = False
-        self.rollback_called = False
-
-    def commit(self):
-        self.commit_called = True
-
-    def rollback(self):
-        self.rollback_called = True
 
 def test_prevent_nested_transaction():
     session = MockSession()

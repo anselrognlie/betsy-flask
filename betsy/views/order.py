@@ -56,8 +56,12 @@ def add_product(product_id):
         return redirect(url_for('product.index'))
 
     quantity = int(request.form.get('quantity'))
-    if not cart.add_product(product, quantity):
-        flash("Could not add requested product quantity", "error")
+    try:
+        cart.add_product(product, quantity)
+    except Exception:  # pylint: disable=broad-except
+        msg = "Could not add requested product quantity"
+        flash(msg, "error")
+        logger.exception(msg)
         return redirect(url_for('product.show', id=product_id))
 
     return redirect(url_for('order.cart'))
@@ -72,8 +76,12 @@ def update_product(product_id):
         return redirect(url_for('product.index'))
 
     quantity = int(request.form.get('quantity'))
-    if not cart.update_product(product, quantity):
-        flash("Could not update requested product quantity", "error")
+    try:
+        cart.update_product(product, quantity)
+    except Exception:  # pylint: disable=broad-except
+        msg = "Could not update requested product quantity"
+        flash(msg, "error")
+        logger.exception(msg)
         return redirect(url_for('product.show', id=product_id))
 
     return redirect(url_for('order.cart'))
@@ -89,11 +97,14 @@ def checkout():
     form = Form(obj=cart)
 
     if form.validate_on_submit():
-        if cart.checkout(**order_params(form)):
+        try:
+            cart.checkout(**order_params(form))
             set_cart_id(None)
             return redirect(url_for('order.show', id=cart.id))
-        else:
-            flash('Unable to complete checkout', 'error')
+        except Exception:  # pylint: disable=broad-except
+            msg = "Unable to complete checkout"
+            flash(msg, "error")
+            logger.exception(msg)
 
     context = dict(
         form=form,
@@ -127,7 +138,7 @@ def cancel(id):  # pylint: disable=invalid-name, redefined-builtin
 
     try:
         order.cancel()
-    except Exception as ex:
+    except Exception:  # pylint: disable=broad-except
         msg = 'Unable to cancel order'
         logger.exception(msg)
         flash(msg, 'error')
