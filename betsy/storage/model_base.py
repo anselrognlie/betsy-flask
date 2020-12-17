@@ -29,6 +29,10 @@ class ModelBase(Model):
     def transaction(cls):
         return transaction(cls.db().session, model_base_deps)
 
+    def reload(self):
+        # pylint: disable=no-member
+        self.db().session.refresh(self)
+
     def save(self):
         # pylint: disable=no-member
         self.db().session.add(self)
