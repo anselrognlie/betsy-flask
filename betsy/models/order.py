@@ -117,6 +117,7 @@ class Order(db.Model):
         return self.order_items.join(OrderItem.product).filter(Product.merchant_id == merchant.id)
 
     def refresh_status(self):
+
         if self.status == OrderStatus.PAID.value:
             complete = True
             for item in self.order_items:  # pylint: disable=not-an-iterable
@@ -125,6 +126,6 @@ class Order(db.Model):
                     break
 
             if complete:
-                self.status = OrderStatus.COMPLETED.value
-
-        self.save()
+                with Order.transaction():
+                    self.status = OrderStatus.COMPLETED.value
+                    self.save()

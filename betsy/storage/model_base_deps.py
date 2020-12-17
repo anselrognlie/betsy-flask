@@ -3,6 +3,6 @@
 class ModelBaseDeps:
     def __init__(self):
         self.db = None  # pylint: disable=invalid-name
-        self.transaction = None
+        self.transactions = []
 
 model_base_deps = ModelBaseDeps()

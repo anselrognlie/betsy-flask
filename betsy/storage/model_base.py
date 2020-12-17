@@ -34,15 +34,15 @@ class ModelBase(Model):
         self.db().session.refresh(self)
 
     def save(self):
-        # pylint: disable=no-member
-        self.db().session.add(self)
-
-        if not model_base_deps.transaction:
-            self.db().session.commit()
+        # require that we are in a transaction
+        # this will ensure a rollback happens on error
+        with ModelBase.transaction():
+            # pylint: disable=no-member
+            self.db().session.add(self)
 
     def destroy(self):
-        # pylint: disable=no-member
-        self.db().session.delete(self)
-
-        if not model_base_deps.transaction:
-            self.db().session.commit()
+        # require that we are in a transaction
+        # this will ensure a rollback happens on error
+        with ModelBase.transaction():
+            # pylint: disable=no-member
+            self.db().session.delete(self)

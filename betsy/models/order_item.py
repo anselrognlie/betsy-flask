@@ -79,8 +79,9 @@ class OrderItem(db.Model):
             self.delete()
             return
 
-        self.quantity = quantity
-        self.save()
+        with OrderItem.transaction():
+            self.quantity = quantity
+            self.save()
 
     @staticmethod
     def find_by_merchant(merchant):

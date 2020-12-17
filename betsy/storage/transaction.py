@@ -2,15 +2,15 @@ import contextlib
 
 @contextlib.contextmanager
 def transaction(session, transaction_host):
-    if transaction_host.transaction:
-        raise RuntimeError("already in transaction")
+    transaction_host.transactions.append(session)
 
-    transaction_host.transaction = session
     try:
         yield session
-        session.commit()
+        transaction_host.transactions.pop()
+        if not transaction_host.transactions:
+            session.commit()
     except Exception:
-        session.rollback()
+        transaction_host.transactions.pop()
+        if not transaction_host.transactions:
+            session.rollback()
         raise
-    finally:
-        transaction_host.transaction = None
