@@ -7,10 +7,15 @@ def transaction(session, transaction_host):
     try:
         yield session
         transaction_host.transactions.pop()
-        if not transaction_host.transactions:
-            session.commit()
     except Exception:
         transaction_host.transactions.pop()
         if not transaction_host.transactions:
             session.rollback()
         raise
+
+    if not transaction_host.transactions:
+        try:
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
