@@ -5,13 +5,7 @@ from betsy.errors.validation_error import ValidationError
 
 from ..test_lib.mocks.simple_mocker import SimpleMocker
 from ..test_lib.mocks.mock_attributes import MockAttributes
-
-class MockFlash():
-    def __init__(self):
-        self.flashes = []
-
-    def flash(self, message, category='missing'):
-        self.flashes.append(dict(message=message, category=category))
+from ..test_lib.mocks.mock_flash import MockFlash
 
 def test_error_setting():
     mock = MockAttributes()

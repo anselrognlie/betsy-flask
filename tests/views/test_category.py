@@ -13,6 +13,7 @@ from ..test_lib.helpers.model_helpers import (
 )
 from ..test_lib.mocks.simple_mocker import SimpleMocker
 from ..test_lib.mocks.mock_attributes import MockAttributes
+from ..test_lib.mocks.mock_flash import MockFlash
 
 class TestWithSetup:
     # pylint: disable=no-self-use
@@ -128,10 +129,8 @@ class TestWithSetup:
             errors.append(ex)
         mock.register(logger, 'exception', my_log)
 
-        flashes = []
-        def my_flash(msg, category='missing'):
-            flashes.append(dict(msg=msg, category=category))
-        mock.register(flask, 'flash', my_flash)
+        mock_flash = MockFlash()
+        mock.register(flask, 'flash', mock_flash.flash)
 
         with self.app.test_request_context(), SimpleMocker([mock]):
             category = Category.find_by_id(self.category_ids[0])
@@ -145,4 +144,4 @@ class TestWithSetup:
             assert result.status_code == 200
             assert len(errors) == 1
             assert str(errors[0]) == 'failed to save category'
-            assert len(flashes) == 2
+            assert len(mock_flash.flashes) == 2
