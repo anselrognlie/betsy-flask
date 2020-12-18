@@ -1,13 +1,14 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 
-from .order_item import OrderItem
-from .order_status import OrderStatus
-from .product import Product
 from ..errors.model_error import ModelError
 from ..helpers import time as mytime
 from ..storage.db import db
+from ..storage.model_base import ModelBase
+from .order_item import OrderItem
+from .order_status import OrderStatus
+from .product import Product
 
-class Order(db.Model):
+class Order(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
     __tablename__ = 'order'
 

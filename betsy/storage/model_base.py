@@ -1,33 +1,30 @@
 from betsy.errors.model_error import ModelError
-from flask_sqlalchemy import Model
 
+from ..errors.validation_error import ValidationError
 from sqlalchemy.schema import Column
 from sqlalchemy.types import BigInteger, TIMESTAMP
 from sqlalchemy.sql import functions as func
-from sqlalchemy import orm
+from sqlalchemy import event
+# from sqlalchemy import orm
 
-from ..errors.validation_error import ValidationError
+from .db import db
 from .model_base_deps import model_base_deps
 from .transaction import transaction
 
-class ModelBase(Model):
+class ModelBase(db.Model):
+    __abstract__ = True
     id = Column(BigInteger, primary_key=True)
     created_at = Column(TIMESTAMP(), nullable=False, server_default=func.now())  # pylint: disable=no-member
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.reconstruct()
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self._validators = []
+    #     self.errors = []
 
-    @orm.reconstructor
-    def reconstruct(self):
-        # pylint: disable=attribute-defined-outside-init
-        self._validators = []
-        self.init_errors()
-        print(repr(self))
-
-    def init_errors(self):
-        # pylint: disable=attribute-defined-outside-init
-        self.errors = []
+    # @orm.reconstructor
+    # def reconstruct(self):
+    #     self._validators = []
+    #     self.errors = []
 
     @classmethod
     def find_by_id(cls, id):  # pylint: disable=invalid-name, redefined-builtin
@@ -78,3 +75,14 @@ class ModelBase(Model):
 
         if self.errors:
             raise ModelError('validation failure')
+
+@event.listens_for(db.session, 'before_flush')
+def perform_validation_before_flush(session, _flush_context, _instances):
+    # validate new and dirty items
+    object_list = []
+    object_list.extend(session.new)
+    object_list.extend(session.dirty)
+
+    for model in object_list:
+        if isinstance(model, ModelBase):
+            model.validate()

@@ -1,9 +1,10 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from ..storage.db import db
+from ..storage.model_base import ModelBase
 from .product_category import product_category
 
-class Product(db.Model):
+class Product(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
     __tablename__ = 'product'
     name = db.Column(db.String(), nullable=False)

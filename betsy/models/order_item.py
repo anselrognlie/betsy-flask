@@ -1,10 +1,11 @@
-from .product import Product
-from .order_status import OrderStatus
 from ..helpers import time as mytime
 from ..storage.db import db
+from ..storage.model_base import ModelBase
 from ..errors.model_error import ModelError
+from .product import Product
+from .order_status import OrderStatus
 
-class OrderItem(db.Model):
+class OrderItem(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
     __tablename__ = 'order_item'
     product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)

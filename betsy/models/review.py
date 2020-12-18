@@ -1,7 +1,7 @@
-# from sqlalchemy import Column, Integer, Text, TIMESTAMP, FetchedValue, ForeignKey
 from ..storage.db import db
+from ..storage.model_base import ModelBase
 
-class Review(db.Model):
+class Review(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
     __tablename__ = 'review'
     rating = db.Column(db.Integer, nullable=False)

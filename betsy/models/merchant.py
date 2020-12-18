@@ -4,12 +4,13 @@ from sqlalchemy.exc import IntegrityError
 from betsy.models.order_status import OrderStatus
 
 from ..storage.db import db
+from ..storage.model_base import ModelBase
 from .product import Product
 from .order_item import OrderItem
 from .order import Order
 from .record import Record
 
-class Merchant(db.Model):
+class Merchant(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
     __tablename__ = 'merchant'
     name = db.Column(db.String(), nullable=False)
