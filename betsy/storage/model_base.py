@@ -1,15 +1,23 @@
-from flask_sqlalchemy import Model
-
 from sqlalchemy.schema import Column
 from sqlalchemy.types import BigInteger, TIMESTAMP
 from sqlalchemy.sql import functions as func
+# from sqlalchemy import orm
 
+from .db import db
 from .model_base_deps import model_base_deps
 from .transaction import transaction
 
-class ModelBase(Model):
+class ModelBase(db.Model):
+    __abstract__ = True
     id = Column(BigInteger, primary_key=True)
     created_at = Column(TIMESTAMP(), nullable=False, server_default=func.now())  # pylint: disable=no-member
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
+    # @orm.reconstructor
+    # def reconstruct(self):
+    #     pass
 
     @classmethod
     def find_by_id(cls, id):  # pylint: disable=invalid-name, redefined-builtin

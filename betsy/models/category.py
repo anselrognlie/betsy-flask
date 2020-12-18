@@ -1,8 +1,9 @@
 from ..storage.db import db
+from ..storage.model_base import ModelBase
 from .product_category import product_category
 from .product import Product
 
-class Category(db.Model):
+class Category(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
     __tablename__ = 'category'
     name = db.Column(db.String(), nullable=False)
