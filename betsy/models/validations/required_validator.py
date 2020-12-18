@@ -8,9 +8,10 @@ class RequiredValidator:
 
     def __call__(self, instance):
         value = getattr(instance, self.field)
+        str_value = str(value)
 
         if self.trim:
-            value = str(value).strip()
+            str_value = str_value.strip()
 
-        if not value:
+        if not (value and str_value):
             raise ValidationError(self, self.field, self.message)
