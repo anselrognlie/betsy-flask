@@ -74,7 +74,7 @@ class ModelBase(db.Model):
         self.errors = []
         for validator in self._validators:
             try:
-                validator()
+                validator(self)
             except ValidationError as ex:
                 self.errors.append(ex)
 
@@ -89,5 +89,4 @@ def perform_validation_before_flush(session, _flush_context, _instances):
     object_list.extend(session.dirty)
 
     for model in object_list:
-        if isinstance(model, ModelBase):
-            model.validate()
+        model.validate()
