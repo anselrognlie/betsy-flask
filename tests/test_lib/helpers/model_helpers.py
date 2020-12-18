@@ -23,7 +23,7 @@ def make_merchant(session, uid):
         name=f'merchant-{uid}',
         email=f'email-{uid}@email.com',
         provider='sample',
-        uid=uid
+        uid=str(uid)
     )
 
     session.add(merchant)

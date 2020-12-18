@@ -1,14 +1,16 @@
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
-from betsy.models.order_status import OrderStatus
-
 from ..storage.db import db
 from ..storage.model_base import ModelBase
-from .product import Product
-from .order_item import OrderItem
 from .order import Order
+from .order_item import OrderItem
+from .order_status import OrderStatus
+from .product import Product
 from .record import Record
+from .validations.unique_validator import UniqueValidator
+from .validations.required_validator import RequiredValidator
+from .validations.email_validator import EmailValidator
 
 class Merchant(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
@@ -18,6 +20,14 @@ class Merchant(ModelBase):
     provider = db.Column(db.String(), nullable=False)
     uid = db.Column(db.String(), nullable=False)
     products = db.relationship("Product", lazy="dynamic")
+
+    def register_validators(self):
+        self.add_validator(RequiredValidator('name'))
+        self.add_validator(UniqueValidator('email'))
+        self.add_validator(EmailValidator('email'))
+        self.add_validator(RequiredValidator('email'))
+        self.add_validator(RequiredValidator('provider'))
+        self.add_validator(RequiredValidator('uid'))
 
     def __repr__(self):
         return f"<Merchant name='{self.name}'>"
@@ -114,11 +124,9 @@ class Merchant(ModelBase):
 
     @staticmethod
     def _make_user_internal(auth_hash):
-        try:
+        user = None
+        with Merchant.transaction():
             user = Merchant(**auth_hash)
-            db.session.add(user)
-            db.session.commit()
-            return user
-        except IntegrityError:
-            db.session.rollback()
-            return None
+            user.save()
+
+        return user

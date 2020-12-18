@@ -1,3 +1,4 @@
+from betsy.models.merchant import Merchant
 import pytest
 
 from flask import url_for
@@ -251,7 +252,8 @@ class TestShopping(CartTestMixin):
 
     def test_order_details(self):
         with self.app.test_request_context():
-            perform_login(self.client, make_merchant(self.session,0))
+            merchant = Merchant.find_by_id(self.merchant_ids[0])
+            perform_login(self.client, merchant)
 
             order = make_order_with_status(self.session, 1)
             product = Product.find_by_id(self.product_ids[1])
@@ -263,7 +265,8 @@ class TestShopping(CartTestMixin):
 
     def test_invalid_order_details(self):
         with self.app.test_request_context():
-            perform_login(self.client, make_merchant(self.session, 0))
+            merchant = Merchant.find_by_id(self.merchant_ids[0])
+            perform_login(self.client, merchant)
 
             result = self.client.get(url_for('order.details', id=-1))
 

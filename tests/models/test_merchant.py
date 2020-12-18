@@ -1,5 +1,7 @@
 import pytest
+import re
 
+from betsy.errors.model_error import ModelError
 from betsy.models.merchant import Merchant
 from betsy.models.order_status import OrderStatus
 from betsy.models.order import Order
@@ -252,7 +254,63 @@ def test_invalid_internal_merchant_from_auth(app):
     with app.app_context():
         auth_hash = dict()
 
-        merchant = Merchant._make_user_internal(auth_hash) # pylint: disable=protected-access
+        with pytest.raises(ModelError):
+            Merchant._make_user_internal(auth_hash) # pylint: disable=protected-access
 
         assert Merchant.query.count() == 0
-        assert not merchant
+
+def test_unique_validation(app, session):
+    with app.app_context():
+        original = make_merchant(session, 0)
+        merchant = make_merchant(session, 1)
+        merchant.email = original.email
+
+        with pytest.raises(ModelError):
+            merchant.save()
+
+        assert re.search(r'email', merchant.errors[0].field)
+        assert re.search(r'unique', merchant.errors[0].message)
+
+def test_required_validation(app):
+    with app.app_context():
+        for field in ('name', 'provider', 'uid'):
+            merchant = Merchant(
+                name='n', email='address@domain.com', provider='p', uid='u'
+            )
+            setattr(merchant, field, None)
+
+            with pytest.raises(ModelError):
+                merchant.save()
+
+            assert re.search(field, merchant.errors[0].field)
+            assert re.search(r'required', merchant.errors[0].message)
+
+def test_email_required_validation(app):
+    with app.app_context():
+        merchant = Merchant(
+            name='n', provider='p', uid='u'
+        )
+
+        with pytest.raises(ModelError):
+            merchant.save()
+
+        # look for matches in errors collection
+        found_error = None
+        for error in merchant.errors:
+            if re.search(r'required', error.message):
+                found_error = error
+                break
+
+        assert re.search(r'email', found_error.field)
+
+def test_email_validation(app):
+    with app.app_context():
+        merchant = Merchant(
+            name='n', email='invalid', provider='p', uid='u'
+        )
+
+        with pytest.raises(ModelError):
+            merchant.save()
+
+        assert re.search(r'email', merchant.errors[0].field)
+        assert re.search(r'valid', merchant.errors[0].message)

@@ -99,7 +99,7 @@ class TestWithSetup(CartTestMixin):
 
     def test_ship_invalid_item(self):
         with self.app.test_request_context(), SimpleMocker([MockNow(datetime(2020, 9, 1))]):
-            merchant = make_merchant(self.session, 0)
+            merchant = Merchant.find_by_id(self.merchant_ids[0])
             perform_login(self.client, merchant)
 
             result = self.client.post(url_for('order_item.ship', id=-1))
