@@ -13,10 +13,8 @@ class Category(ModelBase):
         'Product', secondary=product_category, back_populates='categories', lazy='dynamic'
         )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        ModelBase.__init__(self, *args, **kwargs)
-        print(repr(self))
+    def register_validators(self):
+        self.add_validator(self.require_unique_name)
 
     def __repr__(self):
         return f"<Category name='{self.name}'>"
@@ -29,11 +27,11 @@ class Category(ModelBase):
         error = False
         for _ in range(1):
             results = Category.query.filter(Category.name == self.name).all()
-            if results.count() > 1:
+            if len(results) > 1:
                 error = True
                 break
 
-            if results.count() == 1:
+            if len(results) == 1:
                 if not self.id:
                     error = True
                     break

@@ -1,9 +1,11 @@
 {% if messages %}
 <section class="alert__container">
+<ul>
 {% for status, message in messages %}
-  <div class="alert alert-{{ status }}">
+  <li class="alert alert-{{ status }}">
     {{ message }}
-  </div>
+  </li>
 {% endfor %}
+</ul>
 </section>
 {% endif %}

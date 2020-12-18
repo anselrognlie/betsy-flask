@@ -5,7 +5,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import BigInteger, TIMESTAMP
 from sqlalchemy.sql import functions as func
 from sqlalchemy import event
-# from sqlalchemy import orm
+from sqlalchemy import orm
 
 from .db import db
 from .model_base_deps import model_base_deps
@@ -16,15 +16,20 @@ class ModelBase(db.Model):
     id = Column(BigInteger, primary_key=True)
     created_at = Column(TIMESTAMP(), nullable=False, server_default=func.now())  # pylint: disable=no-member
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self._validators = []
-    #     self.errors = []
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._validators = []
+        self.errors = []
+        self.register_validators()
 
-    # @orm.reconstructor
-    # def reconstruct(self):
-    #     self._validators = []
-    #     self.errors = []
+    @orm.reconstructor
+    def reconstruct(self):
+        self._validators = []
+        self.errors = []
+        self.register_validators()
+
+    def register_validators(self):
+        pass
 
     @classmethod
     def find_by_id(cls, id):  # pylint: disable=invalid-name, redefined-builtin
@@ -66,10 +71,10 @@ class ModelBase(db.Model):
         self._validators.append(validator)
 
     def validate(self):
-        self.init_errors()
+        self.errors = []
         for validator in self._validators:
             try:
-                validator(self)
+                validator()
             except ValidationError as ex:
                 self.errors.append(ex)
 

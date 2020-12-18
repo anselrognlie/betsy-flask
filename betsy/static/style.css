@@ -19,6 +19,11 @@ form.link > input[type="submit"] {
   border: solid 1px black;
 }
 
+.alert {
+  margin: 0;
+  padding: 0;
+}
+
 * {
   xmargin: 0;
   xpadding: 0;

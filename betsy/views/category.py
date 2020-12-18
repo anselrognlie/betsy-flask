@@ -8,6 +8,7 @@ from ..forms.category import Form
 from ..models.category import Category
 from ..logging.logger import logger
 from .helper.auth_helper import require_login, is_logged_in
+from .helper.error_helper import flash_errors
 
 bp = Blueprint("category", __name__, url_prefix='/categories')
 
@@ -60,6 +61,7 @@ def handle_shared_form(category, form_action, template):
             msg = 'failed to save category'
             logger.exception(msg)
             flash(msg, 'error')
+            flash_errors(category.errors)
 
     context = dict(
         form=form,
