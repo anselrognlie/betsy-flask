@@ -1,5 +1,6 @@
 from ..storage.db import db
 from ..storage.model_base import ModelBase
+from .validations.range_validator import RangeValidator
 
 class Review(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
@@ -11,3 +12,6 @@ class Review(ModelBase):
 
     def __repr__(self):
         return f"<Review rating='{self.rating}'>"
+
+    def register_validators(self):
+        self.add_validator(RangeValidator('rating', 1, 5))
