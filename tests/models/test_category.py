@@ -1,3 +1,4 @@
+from betsy.errors.model_error import ModelError
 import pytest
 
 from betsy.models.category import Category
@@ -31,3 +32,10 @@ class TestCategoryWithProducts:
             products = category.available_products().all()
 
             assert len(products) == 3
+
+    def test_unique_validation(self, app):
+        with app.app_context():
+            category = Category.query.first()
+
+            with pytest.raises(ModelError):
+                Category(name=category.name).save()

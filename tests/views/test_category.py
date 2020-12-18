@@ -1,5 +1,6 @@
 import pytest
 
+import flask
 from flask import url_for
 
 from betsy.models.category import Category
@@ -118,3 +119,30 @@ class TestWithSetup:
 
             assert result.status_code == 200
             assert str(errors[0]) == 'failed to save category'
+
+    def test_post_create_invalid_category(self):
+        mock = MockAttributes()
+
+        errors = []
+        def my_log(ex):
+            errors.append(ex)
+        mock.register(logger, 'exception', my_log)
+
+        flashes = []
+        def my_flash(msg, category='missing'):
+            flashes.append(dict(msg=msg, category=category))
+        mock.register(flask, 'flash', my_flash)
+
+        with self.app.test_request_context(), SimpleMocker([mock]):
+            category = Category.find_by_id(self.category_ids[0])
+
+            self.perform_login()
+
+            result = self.client.post(url_for('category.create'), data=dict(
+                name=category.name
+            ))
+
+            assert result.status_code == 200
+            assert len(errors) == 1
+            assert str(errors[0]) == 'failed to save category'
+            assert len(flashes) == 2

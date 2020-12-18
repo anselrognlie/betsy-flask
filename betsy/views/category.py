@@ -1,6 +1,6 @@
+import flask
 from flask import Blueprint
 from flask import render_template
-from flask import flash
 from flask import redirect
 from flask import url_for
 
@@ -25,7 +25,7 @@ def index():
 def show(id):  # pylint: disable=redefined-builtin, invalid-name
     category = Category.find_by_id(id)
     if not category:
-        flash(f"Could not find category: {id}", "error")
+        flask.flash(f"Could not find category: {id}", "error")
         return redirect(url_for('category.index'))
 
     products = category.available_products()
@@ -60,7 +60,7 @@ def handle_shared_form(category, form_action, template):
         except Exception:  # pylint: disable=broad-except
             msg = 'failed to save category'
             logger.exception(msg)
-            flash(msg, 'error')
+            flask.flash(msg, 'error')
             flash_errors(category.errors)
 
     context = dict(
