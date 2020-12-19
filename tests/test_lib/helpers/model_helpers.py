@@ -107,6 +107,9 @@ def add_order_product(session, order, product, quantity):
         quantity=quantity
     )
 
+    if order.status in [OrderStatus.PAID.value, OrderStatus.COMPLETED.value]:
+        item.purchase_price = product.price
+
     session.add(item)
     session.commit()
     return item

@@ -1,9 +1,11 @@
+from betsy.errors.validation_error import ValidationError
 from ..helpers import time as mytime
 from ..storage.db import db
 from ..storage.model_base import ModelBase
 from ..errors.model_error import ModelError
 from .product import Product
 from .order_status import OrderStatus
+from .validations.range_validator import RangeValidator
 
 class OrderItem(ModelBase):
     # pylint: disable=missing-class-docstring, too-few-public-methods
@@ -15,6 +17,19 @@ class OrderItem(ModelBase):
     quantity = db.Column(db.Integer, nullable=False)
     shipped_date = db.Column(db.TIMESTAMP())
     purchase_price = db.Column(db.Integer)
+
+    def register_validators(self):
+        self.add_validator(RangeValidator('quantity', min_val=1))
+        self.add_validator(self.order_status_validation)
+
+    def order_status_validation(self, _instance):
+        # paid orders must have a purchase_price
+        if (
+            self.shipped_date is not None or
+            self.order.status == OrderStatus.PAID.value # pylint: disable=no-member
+        ):
+            if self.purchase_price is None:
+                raise ValidationError(self, 'purchase_price', 'must be set')
 
     def __repr__(self):
         return f"<OrderItem product_id='{self.product_id}' order_id='{self.order_id}'>"

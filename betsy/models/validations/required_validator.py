@@ -13,5 +13,5 @@ class RequiredValidator:
         if self.trim:
             str_value = str_value.strip()
 
-        if not (value and str_value):
+        if value is None or not str_value:
             raise ValidationError(self, self.field, self.message)

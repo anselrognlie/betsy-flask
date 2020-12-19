@@ -13,6 +13,10 @@ class TestValidation:
         validator = RangeValidator('value', 1, 5)
         validator(record)
 
+    def test_required_args(self):
+        with pytest.raises(ValueError):
+            RangeValidator('value')
+
     def test_invalid_below(self):
         record = Fields()
         record.value = 0
@@ -45,6 +49,34 @@ class TestValidation:
         record = Fields()
         record.value = None
         validator = RangeValidator('value', 1, 5)
+
+        with pytest.raises(ValidationError):
+            validator(record)
+
+    def test_valid_no_upper(self):
+        record = Fields()
+        record.value = 3
+        validator = RangeValidator('value', min_val=1)
+        validator(record)
+
+    def test_invalid_no_upper(self):
+        record = Fields()
+        record.value = 0
+        validator = RangeValidator('value', min_val=1)
+
+        with pytest.raises(ValidationError):
+            validator(record)
+
+    def test_valid_no_lower(self):
+        record = Fields()
+        record.value = 3
+        validator = RangeValidator('value', max_val=5)
+        validator(record)
+
+    def test_invalid_no_lower(self):
+        record = Fields()
+        record.value = 7
+        validator = RangeValidator('value', max_val=5)
 
         with pytest.raises(ValidationError):
             validator(record)

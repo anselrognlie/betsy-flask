@@ -1,3 +1,4 @@
+import datetime
 import pytest
 from datetime import date
 
@@ -109,6 +110,25 @@ class TestWithSimpleItemSetup:
             for item in items:
                 with pytest.raises(ModelError):
                     item.delete()
+
+    def test_order_item_must_be_valid_for_paid_order(self, app, session):
+        with app.app_context():
+            paid_order = make_order_with_status(session, 1)
+            product = Product.find_by_id(self.product_id)
+
+            with pytest.raises(ModelError):
+                OrderItem(order=paid_order, product=product, quantity=1).save()
+
+    def test_order_item_must_be_valid_when_shipped(self, app, session):
+        with app.app_context():
+            order = make_order_with_status(session, 1)
+            product = Product.find_by_id(self.product_id)
+            item = add_order_product(session, order, product, 1)
+
+            with pytest.raises(ModelError):
+                item.shipped_date = datetime.datetime(2020, 9, 1)
+                item.purchase_price = None
+                item.save()
 
 class TestWithNonCartSetup:
     @pytest.fixture(autouse=True)

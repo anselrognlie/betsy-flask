@@ -53,10 +53,13 @@ class Order(ModelBase):
 
         if existing_item:
             existing_item.update_quantity(quantity)
+            return existing_item
         else:
             with Order.transaction():
-                self.order_items.append(OrderItem(product=product, quantity=quantity))  # pylint: disable=no-member
+                item = OrderItem(order=self, product=product, quantity=quantity)
+                item.save()
                 self.save()
+            return item
 
     def update_product(self, product, quantity):
         # if there is an existing order_item, update the desired quantity

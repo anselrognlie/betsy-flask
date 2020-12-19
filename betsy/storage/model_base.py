@@ -85,8 +85,8 @@ class ModelBase(db.Model):
 def perform_validation_before_flush(session, _flush_context, _instances):
     # validate new and dirty items
     object_list = []
-    object_list.extend(session.new)
     object_list.extend(session.dirty)
+    object_list.extend(session.new)
 
     for model in object_list:
         model.validate()
