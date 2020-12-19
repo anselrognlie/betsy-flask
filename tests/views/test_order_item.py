@@ -13,7 +13,7 @@ from ..test_lib.helpers.flask_helper import (
     assert_flashes, assert_no_flashes, clear_flash, perform_login
 )
 from ..test_lib.helpers.model_helpers import (
-    add_order_product, make_merchant, make_order_with_status, make_product
+    add_order_product, make_order_with_status, make_product
 )
 
 class TestWithSetup(CartTestMixin):
