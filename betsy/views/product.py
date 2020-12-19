@@ -4,6 +4,7 @@ from flask import flash
 from flask import redirect
 from flask import url_for
 
+from ..views.helper.error_helper import flash_errors
 from ..models.product import Product
 from ..forms.product import Form
 from ..logging.logger import logger
@@ -69,6 +70,7 @@ def handle_shared_form(product, form_action, template):
             msg = 'failed to update product'
             logger.exception(msg)
             flash(msg, 'error')
+            flash_errors(product.errors)
 
     context = dict(
         form=form,

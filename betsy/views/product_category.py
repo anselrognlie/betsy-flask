@@ -1,3 +1,4 @@
+from betsy.views.helper.error_helper import flash_errors
 from flask import Blueprint
 from flask import render_template
 from flask import flash
@@ -41,6 +42,7 @@ def handle_shared_form(product, form_action, template):
             msg = 'failed to update categories'
             logger.exception(msg)
             flash(msg, 'error')
+            flash_errors(product.errors)
 
     context = dict(
         form=form,

@@ -1,5 +1,7 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 
+from .validations.required_validator import RequiredValidator
+from .validations.range_validator import RangeValidator
 from ..storage.db import db
 from ..storage.model_base import ModelBase
 from .product_category import product_category
@@ -21,6 +23,15 @@ class Product(ModelBase):
     reviews = db.relationship("Review", lazy='dynamic')
     order_items = db.relationship("OrderItem", lazy='dynamic')
     orders = association_proxy('order_items', 'order')
+
+    def register_validators(self):
+        self.add_validator(RequiredValidator('name'))
+        self.add_validator(RequiredValidator('description'))
+        self.add_validator(RequiredValidator('price'))
+        self.add_validator(RangeValidator('price', min_val=1))
+        self.add_validator(RequiredValidator('stock'))
+        self.add_validator(RangeValidator('stock', min_val=0))
+        self.add_validator(RequiredValidator('discontinued'))
 
     def __repr__(self):
         return f"<Product name='{self.name}'>"
