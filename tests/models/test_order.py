@@ -1,4 +1,5 @@
 import pytest
+import re
 from datetime import datetime
 
 from betsy.errors.model_error import ModelError
@@ -8,8 +9,8 @@ from betsy.models.product import Product
 from betsy.models.merchant import Merchant
 
 from ..test_lib.helpers.model_helpers import (
-    add_order_product, make_order, make_merchant, make_product, make_checkout_kwargs,
-    make_order_with_status
+    add_order_product, make_order, make_merchant, make_order_init_hash,
+    make_product, make_checkout_kwargs, make_order_with_status
 )
 from ..test_lib.mocks.simple_mocker import SimpleMocker
 from ..test_lib.mocks.mock_now import MockNow
@@ -27,6 +28,56 @@ def test_make_cart(app):
 
         assert cart.status == 'pending'
         assert cart.order_items.count() == 0
+
+class TestValidations:
+    @pytest.fixture(autouse=True)
+    def before(self, app, session):
+        with app.app_context():
+            # pylint: disable=attribute-defined-outside-init
+            self.app = app
+            self.session = session
+
+    def test_base_case(self):
+        with self.app.app_context():
+            Order.make_cart()
+
+    def test_status_required(self):
+        with self.app.app_context():
+            order = Order.make_cart()
+            order.status = None
+
+            with pytest.raises(ModelError):
+                order.save()
+
+    def test_required_fields(self):
+        with self.app.app_context():
+            for status in (OrderStatus.PAID.value, OrderStatus.COMPLETED.value):
+                for field in (
+                    'email', 'mailing_address', 'cc_name', 'cc_number', 'cc_exp',
+                    'cc_cvv', 'cc_zipcode', 'ordered_date'
+                ):
+                    order = Order(**make_order_init_hash(0))
+                    order.status = status
+                    setattr(order, field, None)
+
+                    with pytest.raises(ModelError):
+                        order.save()
+
+                    assert field == order.errors[0].field
+                    assert re.search(r'required', order.errors[0].message)
+
+    def test_email_validation(self):
+        with self.app.app_context():
+            for status in (OrderStatus.PAID.value, OrderStatus.COMPLETED.value):
+                order = Order(**make_order_init_hash(0))
+                order.status = status
+                order.email = 'invalid'
+
+                with pytest.raises(ModelError):
+                    order.save()
+
+                assert 'email' == order.errors[0].field
+                assert re.search(r'valid email', order.errors[0].message)
 
 class TestSimpleSubtotal:
     @pytest.fixture(autouse=True)

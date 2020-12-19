@@ -1,5 +1,8 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 
+from .validations.required_if_validator import RequiredIfValidator
+from .validations.required_validator import RequiredValidator
+from .validations.email_validator import EmailValidator
 from ..errors.model_error import ModelError
 from ..helpers import time as mytime
 from ..storage.db import db
@@ -24,12 +27,28 @@ class Order(ModelBase):
     order_items = db.relationship("OrderItem", lazy='dynamic')
     products = association_proxy('order_items', 'product')
 
+    def register_validators(self):
+        self.add_validator(RequiredIfValidator('email', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('mailing_address', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('cc_name', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('cc_number', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('cc_exp', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('cc_cvv', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('cc_zipcode', Order.paid_or_completed))
+        self.add_validator(RequiredIfValidator('ordered_date', Order.paid_or_completed))
+        self.add_validator(RequiredValidator('status'))
+        self.add_validator(EmailValidator('email', allow_empty=True))
+
+    @staticmethod
+    def paid_or_completed(instance):
+        return instance.status in (OrderStatus.PAID.value, OrderStatus.COMPLETED.value)
+
     def __repr__(self):
         return f"<Order email='{self.email}'>"
 
     @staticmethod
     def make_cart():
-        cart = Order()
+        cart = Order(status=OrderStatus.PENDING.value)
         cart.save()
 
         return cart

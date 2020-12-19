@@ -84,8 +84,8 @@ def make_checkout_kwargs(uid):
         ordered_date=datetime.datetime(2020, 9, 1)
     )
 
-def make_order(session, uid):
-    order = Order(
+def make_order_init_hash(uid):
+    return dict(
         email=f'email-{uid}@email.com',
         mailing_address=f'{uid} Main St, Anytown, USA 11111',
         cc_name=f'name on card {uid}',
@@ -93,7 +93,13 @@ def make_order(session, uid):
         cc_exp='01/2025',
         cc_cvv='123',
         cc_zipcode='11111',
-        ordered_date=datetime.datetime(2020, 9, 1)
+        ordered_date=datetime.datetime(2020, 9, 1),
+        status=OrderStatus.PENDING.value
+    )
+
+def make_order(session, uid):
+    order = Order(
+        **make_order_init_hash(uid)
     )
 
     session.add(order)
@@ -127,7 +133,10 @@ def make_revenue_summary(count, total):
 
 def make_order_with_status(session, uid):
     statuses = OrderStatus.all()
-    order = make_order(session, uid)
-    order.status = statuses[int(uid) % len(statuses)]
+    order_hash = make_order_init_hash(uid)
+    order_hash['status'] = statuses[int(uid) % len(statuses)]
+    order = Order(**order_hash)
+
+    session.add(order)
     session.commit()
     return order

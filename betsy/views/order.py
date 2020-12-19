@@ -1,21 +1,22 @@
 # pylint: disable=missing-module-docstring
 
-from betsy.views.helper.auth_helper import require_login
+import flask
 from flask import Blueprint
 from flask import render_template
 from flask import redirect
 from flask import url_for
-from flask import flash
 from flask import request
 
 from ..models.order import Order
 from ..models.product import Product
 from ..forms.order import Form
 from ..logging.logger import logger
+from .helper.auth_helper import require_login
 from .helper.session_helper import get_cart_id, set_cart_id
 from .helper.auth_helper import get_current_user
 from .helper.order_helper import require_cart
 from .helper.order_helper import get_cart, set_cart
+from .helper.error_helper import flash_errors
 
 bp = Blueprint("order", __name__, url_prefix="/orders")
 
@@ -52,7 +53,7 @@ def add_product(product_id):
     cart = get_cart()  # pylint: disable=redefined-outer-name
     product = Product.find_by_id(product_id)
     if product is None:
-        flash(f"Could not find product: {product_id}", "error")
+        flask.flash(f"Could not find product: {product_id}", "error")
         return redirect(url_for('product.index'))
 
     quantity = int(request.form.get('quantity'))
@@ -60,7 +61,7 @@ def add_product(product_id):
         cart.add_product(product, quantity)
     except Exception:  # pylint: disable=broad-except
         msg = "Could not add requested product quantity"
-        flash(msg, "error")
+        flask.flash(msg, "error")
         logger.exception(msg)
         return redirect(url_for('product.show', id=product_id))
 
@@ -72,7 +73,7 @@ def update_product(product_id):
     cart = get_cart()  # pylint: disable=redefined-outer-name
     product = Product.find_by_id(product_id)
     if product is None:
-        flash(f"Could not find product: {product_id}", "error")
+        flask.flash(f"Could not find product: {product_id}", "error")
         return redirect(url_for('product.index'))
 
     quantity = int(request.form.get('quantity'))
@@ -80,7 +81,7 @@ def update_product(product_id):
         cart.update_product(product, quantity)
     except Exception:  # pylint: disable=broad-except
         msg = "Could not update requested product quantity"
-        flash(msg, "error")
+        flask.flash(msg, "error")
         logger.exception(msg)
         return redirect(url_for('product.show', id=product_id))
 
@@ -91,7 +92,7 @@ def update_product(product_id):
 def checkout():
     cart = get_cart()  # pylint: disable=redefined-outer-name
     if not cart.can_checkout():
-        flash('Unable to process checkout', 'error')
+        flask.flash('Unable to process checkout', 'error')
         return redirect(url_for('order.cart'))
 
     form = Form(obj=cart)
@@ -103,8 +104,9 @@ def checkout():
             return redirect(url_for('order.show', id=cart.id))
         except Exception:  # pylint: disable=broad-except
             msg = "Unable to complete checkout"
-            flash(msg, "error")
+            flask.flash(msg, "error")
             logger.exception(msg)
+            flash_errors(cart.errors)
 
     context = dict(
         form=form,
@@ -119,7 +121,7 @@ def checkout():
 def show(id):  # pylint: disable=invalid-name, redefined-builtin
     order = Order.find_by_id(id)
     if not order:
-        flash('Invalid order', 'error')
+        flask.flash('Invalid order', 'error')
         return redirect(url_for('page.home'))
 
     context = dict(
@@ -133,7 +135,7 @@ def show(id):  # pylint: disable=invalid-name, redefined-builtin
 def cancel(id):  # pylint: disable=invalid-name, redefined-builtin
     order = Order.find_by_id(id)
     if not order:
-        flash('Invalid order', 'error')
+        flask.flash('Invalid order', 'error')
         return redirect(url_for('page.home'))
 
     try:
@@ -141,7 +143,7 @@ def cancel(id):  # pylint: disable=invalid-name, redefined-builtin
     except Exception:  # pylint: disable=broad-except
         msg = 'Unable to cancel order'
         logger.exception(msg)
-        flash(msg, 'error')
+        flask.flash(msg, 'error')
 
     return redirect(url_for('order.show', id=id))
 
@@ -150,7 +152,7 @@ def cancel(id):  # pylint: disable=invalid-name, redefined-builtin
 def details(id):  # pylint: disable=invalid-name, redefined-builtin
     order = Order.find_by_id(id)
     if not order:
-        flash('Invalid order', 'error')
+        flask.flash('Invalid order', 'error')
         return redirect(url_for('page.home'))
 
     context = dict(
