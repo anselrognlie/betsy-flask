@@ -34,3 +34,9 @@ class TestValidation:
 
         with pytest.raises(ValidationError):
             validator(record)
+
+    def test_valid_with_allow_empty(self):
+        record = Fields()
+        record.email = ''
+        validator = EmailValidator('email', allow_empty=True)
+        validator(record)
