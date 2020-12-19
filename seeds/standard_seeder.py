@@ -28,9 +28,10 @@ class Adjective(Generator):
             "cold"]
         return random.choice(words)
 
-class Noun(Generator):
-    def generate(self):
-        words = ["engineering", "manufacturer", "wife", "energy", "connection", "restaurant",
+class Noun():
+    def __init__(self, unique=False):
+        self.unique = unique
+        self.words = ["engineering", "manufacturer", "wife", "energy", "connection", "restaurant",
             "beer", "community", "property", "food", "technology", "mood", "area",
             "foundation", "girlfriend", "preference", "emotion", "poet", "garbage",
             "city", "competition", "steak", "music", "health", "preparation", "reputation",
@@ -38,7 +39,13 @@ class Noun(Generator):
             "quantity", "cigarette", "intention", "grocery", "performance", "death",
             "presentation", "friendship", "cousin", "extent", "manager", "alcohol",
             "secretary", "confusion", "freedom", "hall", "responsibility", "song"]
-        return random.choice(words)
+        self.used = dict()
+
+    def generate(self):
+        index = random.randint(0, len(self.words) - 1)
+        word = self.words[index]
+        del self.words[index]
+        return word
 
 class CreditCardNumber(Generator):
     def __init__(self):
@@ -248,7 +255,7 @@ class StandardSeeder(Seeder):
     def run(self):
         # Create a new Faker and tell it how to create User objects
         name_gen = generator.Name()
-        noun_gen = Noun()
+        category_gen = Noun(unique=True)
         prod_name_gen = ProductName()
         sentence_gen = Sentence()
         price_gen = generator.Integer(start=100, end=5000)
@@ -299,7 +306,7 @@ class StandardSeeder(Seeder):
         # Create categories
         categories = []
         for _ in range(10):
-            name = noun_gen.generate()
+            name = category_gen.generate()
             category = Category(name=name)
             categories.append(category)
 
@@ -332,6 +339,7 @@ class StandardSeeder(Seeder):
 
         for product in random.sample(products, random.randint(30, 50)):
             review_count = random.randint(1, 5)
+            print(f"Adding {review_count} review for {product}")
             for _ in range(review_count):
                 rating = random.randint(1, 5)
                 comment = sentence_gen.generate()
@@ -344,6 +352,7 @@ class StandardSeeder(Seeder):
         orders = []
         for merchant in merchants:
             order_count = random.randint(0, 20)
+            print(f'Create {order_count} order for {merchant}')
             statuses = OrderStatus.all()
             for _ in range(order_count):
                 status = random.sample(statuses, 1)[0]
@@ -367,16 +376,19 @@ class StandardSeeder(Seeder):
 
                 item_count = random.randint(1, 5)
                 order_products = random.sample(products, item_count)
+                print(f'Create order with {len(order_products)} product')
                 for product in order_products:
                     quantity = random.randint(1, 5)
+                    print(f'...Add {quantity} of {product}')
                     item = OrderItem()
                     item.product = product
                     item.order = order
-                    item.purchase_price = product.price
                     item.quantity = quantity
                     if order.status == OrderStatus.PAID.value:
+                        item.purchase_price = product.price
                         item.shipped_date = random.sample([None, shipped_date.generate()], 1)[0]
                     elif order.status == OrderStatus.COMPLETED.value:
+                        item.purchase_price = product.price
                         item.shipped_date = shipped_date.generate()
 
                     self.db.session.add(item)
