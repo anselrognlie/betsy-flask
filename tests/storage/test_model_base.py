@@ -66,3 +66,7 @@ def test_destroy_in_transaction(app, session):
 
         category = Category.find_by_id(category_id)
         assert not category
+
+def test_coverage_for_empty_validation():
+    base = ModelBase()
+    base.register_validators()
