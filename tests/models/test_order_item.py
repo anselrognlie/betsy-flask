@@ -111,6 +111,14 @@ class TestWithSimpleItemSetup:
                 with pytest.raises(ModelError):
                     item.delete()
 
+    def test_order_item_quantity_required(self, app, session):
+        with app.app_context():
+            order = make_order_with_status(session, 0)
+            product = Product.find_by_id(self.product_id)
+
+            with pytest.raises(ModelError):
+                OrderItem(order=order, product=product, quantity=0).save()
+
     def test_order_item_must_be_valid_for_paid_order(self, app, session):
         with app.app_context():
             paid_order = make_order_with_status(session, 1)
