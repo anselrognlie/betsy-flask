@@ -4,6 +4,7 @@ from flask import flash
 from flask import redirect
 from flask import url_for
 
+from ..views.helper.error_helper import flash_errors
 from ..forms.review import Form
 from ..models.review import Review
 from ..models.product import Product
@@ -44,6 +45,7 @@ def handle_shared_form(review, form_action, template):
             msg = 'failed to save review'
             flash(msg, 'error')
             logger.exception(msg)
+            flash_errors(review.errors)
 
     context = dict(
         form=form,

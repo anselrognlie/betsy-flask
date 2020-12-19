@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-from betsy.models.order_status import OrderStatus
 from flask import Blueprint
 from flask import render_template
 from flask import redirect
@@ -9,6 +8,8 @@ from flask import flash
 from flask import current_app
 from flask import g
 
+from ..views.helper.error_helper import flash_errors
+from ..models.order_status import OrderStatus
 from ..models.merchant import Merchant
 from ..dao.builder.merchant_dao_builder import MerchantDaoBuilder
 from ..keys import ALLOW_IMPERSONATION
@@ -104,16 +105,12 @@ def products():  # pylint: disable=redefined-builtin, invalid-name
 def orders():  # pylint: disable=redefined-builtin, invalid-name
     merchant = get_current_user()
     total_revenue = merchant.total_revenue()
-    # revenues_by_status = {
-    #     status.value: merchant.revenue_by_status(status.value) for status in OrderStatus.all()
-    #     }
     revenue_summary = merchant.revenue_summary()
     orders_summary = merchant.orders_summary()
 
     context = dict(
         products=products,
         total_revenue=total_revenue,
-        # revenues_by_status=revenues_by_status,
         revenue_summary=revenue_summary,
         orders_summary=orders_summary,
         statuses=OrderStatus.all()
@@ -136,6 +133,7 @@ def update():  # pylint: disable=redefined-builtin, invalid-name
             msg = 'failed to save merchant'
             logger.exception(msg)
             flash(msg, 'error')
+            flash_errors(merchant.errors)
 
     context = dict(
         merchant=merchant,
