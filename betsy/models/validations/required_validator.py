@@ -12,9 +12,9 @@ class RequiredValidator:
 
         if hasattr(instance, self.field):
             value = getattr(instance, self.field)
-            str_value = str(value)
+            str_value = str(value) if value is not None else None
 
-            if self.trim:
+            if str_value and self.trim:
                 str_value = str_value.strip()
 
         if value is None or not str_value:
