@@ -36,3 +36,10 @@ class TestValidation:
 
         with pytest.raises(ValidationError):
             validator(record)
+
+    def test_missing_as_invalid(self):
+        record = Fields()
+        validator = RequiredValidator('name')
+
+        with pytest.raises(ValidationError):
+            validator(record)

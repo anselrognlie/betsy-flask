@@ -7,11 +7,15 @@ class RequiredValidator:
         self.message = message
 
     def __call__(self, instance):
-        value = getattr(instance, self.field)
-        str_value = str(value)
+        value = None
+        str_value = None
 
-        if self.trim:
-            str_value = str_value.strip()
+        if hasattr(instance, self.field):
+            value = getattr(instance, self.field)
+            str_value = str(value)
+
+            if self.trim:
+                str_value = str_value.strip()
 
         if value is None or not str_value:
             raise ValidationError(self, self.field, self.message)
