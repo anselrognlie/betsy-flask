@@ -40,3 +40,15 @@ class TestValidation:
         record.email = ''
         validator = EmailValidator('email', allow_empty=True)
         validator(record)
+
+    def test_valid_missing_with_allow_empty(self):
+        record = Fields()
+        validator = EmailValidator('email', allow_empty=True)
+        validator(record)
+
+    def test_valid_missing(self):
+        record = Fields()
+        validator = EmailValidator('email')
+
+        with pytest.raises(ValidationError):
+            validator(record)

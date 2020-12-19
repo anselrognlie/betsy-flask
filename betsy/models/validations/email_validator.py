@@ -10,10 +10,12 @@ class EmailValidator:
         self.allow_empty = allow_empty
 
     def __call__(self, instance):
-        value = getattr(instance, self.field)
+        value = ''
+        if hasattr(instance, self.field):
+            value = getattr(instance, self.field) or ''
 
-        if self.trim:
-            value = str(value).strip()
+            if value and self.trim:
+                value = str(value).strip()
 
         if not value and self.allow_empty:
             return
