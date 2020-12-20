@@ -4,6 +4,7 @@ from datetime import datetime
 
 from betsy.errors.model_error import ModelError
 from betsy.models.order import Order
+from betsy.models.order_item import OrderItem
 from betsy.models.order_status import OrderStatus
 from betsy.models.product import Product
 from betsy.models.merchant import Merchant
@@ -14,6 +15,7 @@ from ..test_lib.helpers.model_helpers import (
 )
 from ..test_lib.mocks.simple_mocker import SimpleMocker
 from ..test_lib.mocks.mock_now import MockNow
+from ..test_lib.mocks.mock_attributes import MockAttributes
 
 def test_order_repr(app, session):
     with app.app_context():
@@ -76,7 +78,7 @@ class TestValidations:
                 with pytest.raises(ModelError):
                     order.save()
 
-                assert 'email' == order.errors[0].field
+                assert order.errors[0].field == 'email'
                 assert re.search(r'valid email', order.errors[0].message)
 
 class TestSimpleSubtotal:
@@ -301,21 +303,24 @@ class TestCheckout:
             products = [make_product(session, i) for i in range(5)]
 
             products[0].stock = 5
+            products[1].stock = 10
             add_order_product(session, cart, products[0], 5)
 
             # pylint: disable=attribute-defined-outside-init
+            self.app = app
+            self.session = session
             self.cart_id = cart.id
             self.product_ids = [product.id for product in products]
 
-    def test_cannot_checkout_invalid_order(self, app):
-        with app.app_context():
+    def test_cannot_checkout_invalid_order(self):
+        with self.app.app_context():
             order = Order.make_cart()
 
             with pytest.raises(ModelError):
                 order.checkout()
 
-    def test_can_checkout_valid_order(self, app):
-        with app.app_context(), SimpleMocker([MockNow(datetime(2020, 9, 1))]):
+    def test_can_checkout_valid_order(self):
+        with self.app.app_context(), SimpleMocker([MockNow(datetime(2020, 9, 1))]):
             order = Order.find_by_id(self.cart_id)
 
             order.checkout(**make_checkout_kwargs(1))
@@ -325,6 +330,37 @@ class TestCheckout:
             assert order.status == 'paid'
             assert order.email == 'email-1@email.com'
             assert order.ordered_date == datetime(2020, 9, 1)
+
+    def test_failed_checkout_stock_rollback(self):
+        class MockPrepareCheckoutFailure:
+            def __init__(self, fail_on):
+                self._fail_on = fail_on
+                self._count = 0
+
+            def __call__(self):
+                self._count += 1
+                if self._count >= self._fail_on:
+                    raise RuntimeError('mock failure')
+
+        mock = MockAttributes()
+        failure = MockPrepareCheckoutFailure(2)
+        mock.register(OrderItem, 'save', failure)
+
+        with self.app.app_context():
+            order = Order.find_by_id(self.cart_id)
+            product1 = Product.find_by_id(self.product_ids[1])
+            order.add_product(product1, 3)
+
+            with SimpleMocker([mock]), pytest.raises(RuntimeError):
+                order.checkout(**make_checkout_kwargs(1))
+
+            product0 = Product.find_by_id(self.product_ids[0])
+            product1 = Product.find_by_id(self.product_ids[1])
+            assert product0.stock == 5
+            assert product1.stock == 10
+            assert order.status == OrderStatus.PENDING.value
+            assert not order.email
+            assert not order.ordered_date
 
 class TestCancelAndCompletion:
     @pytest.fixture(autouse=True)
